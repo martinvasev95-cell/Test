@@ -1,0 +1,271 @@
+.app {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 24px 20px 40px;
+  gap: 20px;
+}
+
+.app__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.app__stats {
+  margin-top: 4px;
+  font-size: 14px;
+  color: var(--text);
+}
+
+.app__actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.app__clear {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-size: 14px;
+}
+
+.app__clear:hover {
+  border-color: var(--accent-border);
+  color: var(--text-h);
+}
+
+.app__main {
+  position: relative;
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+.app__empty {
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+  padding: 24px;
+  text-align: center;
+  color: var(--text);
+  font-size: 15px;
+}
+
+/* Import button */
+
+.import-button {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.import-button__label {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--accent);
+  color: #fff;
+  border-radius: 8px;
+  padding: 10px 18px;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.import-button__label input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  width: 100%;
+  cursor: pointer;
+}
+
+.import-button__label input:disabled {
+  cursor: default;
+}
+
+.import-button__summary {
+  font-size: 12px;
+  color: var(--text);
+  max-width: 260px;
+  text-align: right;
+}
+
+/* World map */
+
+.world-map {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--ocean);
+}
+
+.world-map__ocean {
+  fill: var(--ocean);
+}
+
+.world-map__country {
+  fill: var(--land);
+  stroke: var(--bg);
+  stroke-width: 0.5;
+}
+
+.world-map__country--visited {
+  fill: var(--land-visited);
+  cursor: pointer;
+}
+
+.world-map__country--hovered {
+  fill: var(--accent-border);
+}
+
+.world-map__country--selected {
+  stroke: var(--text-h);
+  stroke-width: 1.5;
+}
+
+.world-map__tooltip {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 13px;
+  color: var(--text-h);
+  box-shadow: var(--shadow);
+  pointer-events: none;
+}
+
+.world-map__tooltip-count {
+  color: var(--text);
+}
+
+/* Country panel */
+
+.country-panel {
+  width: 320px;
+  flex-shrink: 0;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg-alt);
+  padding: 16px;
+}
+
+.country-panel__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.country-panel__close {
+  background: transparent;
+  border: none;
+  font-size: 22px;
+  line-height: 1;
+  color: var(--text);
+  padding: 0;
+}
+
+.country-panel__close:hover {
+  color: var(--text-h);
+}
+
+.country-panel__count {
+  margin-top: 2px;
+  font-size: 13px;
+  color: var(--text);
+}
+
+.country-panel__photo {
+  margin: 16px 0 0;
+}
+
+.country-panel__photo img {
+  width: 100%;
+  border-radius: 8px;
+  display: block;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+}
+
+.country-panel__photo figcaption {
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.country-panel__date {
+  font-size: 14px;
+  color: var(--text-h);
+  font-weight: 500;
+}
+
+.country-panel__delete {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 12px;
+}
+
+.country-panel__delete:hover {
+  border-color: var(--accent-border);
+  color: var(--text-h);
+}
+
+.country-panel__strip {
+  margin-top: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.country-panel__thumb {
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  border-radius: 6px;
+  border: 2px solid transparent;
+  overflow: hidden;
+  background: none;
+}
+
+.country-panel__thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.country-panel__thumb--active {
+  border-color: var(--accent);
+}
+
+@media (max-width: 720px) {
+  .app__main {
+    flex-direction: column;
+  }
+
+  .country-panel {
+    width: 100%;
+  }
+}

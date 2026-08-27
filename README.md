@@ -22,9 +22,18 @@ country to see the date and photo.
 - Photos are resized/compressed on import (max 1400px, JPEG) so a
   trip's worth of photos doesn't blow past storage limits.
 
-Photos without embedded GPS data (screenshots, downloaded images, or
-photos taken with location services off) are skipped, since there's
-nowhere to place them on the map.
+### About location data on iPhone
+
+iOS strips GPS metadata from photos before handing them to a website,
+even when the original photo is geotagged — this is a platform privacy
+restriction, not something a website can opt out of. In practice this
+means **most photos picked via Safari on iPhone will have no location
+data**, no matter how the photo was originally taken. When that happens,
+the photo isn't dropped — it shows up in a "couldn't detect a location"
+list where you pick the country by hand (the capture date is usually
+still present, since only location is scrubbed). Photos genuinely
+missing both GPS and a capture date (e.g. screenshots) can still be
+kept this way, just with the date left blank.
 
 ## Development
 

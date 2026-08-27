@@ -1,9 +1,9 @@
 import { useRef, useState } from 'react';
-import type { ImportSummary, Visit } from '../types';
+import type { ImportSummary, PendingPhoto, Visit } from '../types';
 import { importPhotos } from '../lib/importPhotos';
 
 interface ImportButtonProps {
-  onImported: (visits: Visit[]) => void;
+  onImported: (visits: Visit[], pending: PendingPhoto[]) => void;
 }
 
 export function ImportButton({ onImported }: ImportButtonProps) {
@@ -17,11 +17,11 @@ export function ImportButton({ onImported }: ImportButtonProps) {
     setSummary(null);
     setProgress({ done: 0, total: files.length });
 
-    const { visits, summary: result } = await importPhotos(files, (done, total) =>
+    const { visits, pending, summary: result } = await importPhotos(files, (done, total) =>
       setProgress({ done, total }),
     );
 
-    onImported(visits);
+    onImported(visits, pending);
     setProgress(null);
     setSummary(result);
     if (inputRef.current) inputRef.current.value = '';
@@ -43,10 +43,8 @@ export function ImportButton({ onImported }: ImportButtonProps) {
       {summary && (
         <p className="import-button__summary">
           Added {summary.imported} photo{summary.imported === 1 ? '' : 's'}.
-          {summary.skippedNoGps > 0 &&
-            ` ${summary.skippedNoGps} skipped (no location data).`}
-          {summary.skippedNoCountryMatch > 0 &&
-            ` ${summary.skippedNoCountryMatch} skipped (couldn't match a country).`}
+          {summary.pending > 0 &&
+            ` ${summary.pending} need${summary.pending === 1 ? 's' : ''} a country picked by hand — see below.`}
         </p>
       )}
     </div>

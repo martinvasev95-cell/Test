@@ -269,3 +269,103 @@
     width: 100%;
   }
 }
+
+/* Pending photos (manual country assignment) */
+
+.pending-photos {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px 20px;
+  background: var(--bg-alt);
+}
+
+.pending-photos h2 {
+  font-size: 16px;
+}
+
+.pending-photos__hint {
+  margin-top: 6px;
+  font-size: 13px;
+  color: var(--text);
+  max-width: 640px;
+}
+
+.pending-photos__list {
+  list-style: none;
+  margin: 16px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.pending-photos__row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+}
+
+.pending-photos__thumb {
+  width: 56px;
+  height: 56px;
+  border-radius: 6px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.pending-photos__fields {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  flex: 1;
+  min-width: 220px;
+}
+
+.pending-photos__fields select,
+.pending-photos__fields input {
+  font: inherit;
+  font-size: 14px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text-h);
+}
+
+.pending-photos__actions {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.pending-photos__actions button {
+  font-size: 13px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text-h);
+}
+
+.pending-photos__actions button:first-child {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.pending-photos__actions button:disabled {
+  background: var(--bg);
+  border-color: var(--border);
+  color: var(--text);
+  opacity: 0.5;
+  cursor: default;
+}
+
+.pending-photos__discard {
+  color: var(--text);
+}

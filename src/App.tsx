@@ -1,16 +1,20 @@
 import { useEffect, useMemo, useState } from 'react';
 import './App.css';
-import type { Visit } from './types';
+import type { PendingPhoto, Visit } from './types';
 import { loadVisits, saveVisits } from './lib/db';
 import { getCountryName } from './lib/countries';
 import { WorldMap } from './components/WorldMap';
 import { ImportButton } from './components/ImportButton';
 import { CountryPanel } from './components/CountryPanel';
+import { PendingPhotos } from './components/PendingPhotos';
 
 export default function App() {
   const [visits, setVisits] = useState<Visit[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [selectedCountryId, setSelectedCountryId] = useState<string | null>(null);
+  // Photos with no usable GPS, held only in memory until the user assigns a
+  // country by hand or discards them — not worth persisting across reloads.
+  const [pendingPhotos, setPendingPhotos] = useState<PendingPhoto[]>([]);
 
   useEffect(() => {
     loadVisits().then((stored) => {
@@ -37,8 +41,33 @@ export default function App() {
     [visits, selectedCountryId],
   );
 
-  function handleImported(newVisits: Visit[]) {
+  function handleImported(newVisits: Visit[], newPending: PendingPhoto[]) {
     setVisits((prev) => [...prev, ...newVisits]);
+    setPendingPhotos((prev) => [...prev, ...newPending]);
+  }
+
+  function handleAssignPending(photoId: string, countryId: string, date: string | null) {
+    const photo = pendingPhotos.find((p) => p.id === photoId);
+    if (!photo) return;
+    setVisits((prev) => [
+      ...prev,
+      {
+        id: photo.id,
+        countryId,
+        countryName: getCountryName(countryId),
+        dateTaken: date,
+        lat: null,
+        lng: null,
+        photoDataUrl: photo.photoDataUrl,
+        fileName: photo.fileName,
+        addedAt: new Date().toISOString(),
+      },
+    ]);
+    setPendingPhotos((prev) => prev.filter((p) => p.id !== photoId));
+  }
+
+  function handleDiscardPending(photoId: string) {
+    setPendingPhotos((prev) => prev.filter((p) => p.id !== photoId));
   }
 
   function handleDeleteVisit(id: string) {
@@ -94,12 +123,19 @@ export default function App() {
         )}
       </main>
 
-      {loaded && visits.length === 0 && (
+      <PendingPhotos
+        photos={pendingPhotos}
+        onAssign={handleAssignPending}
+        onDiscard={handleDiscardPending}
+      />
+
+      {loaded && visits.length === 0 && pendingPhotos.length === 0 && (
         <div className="app__empty">
           <p>
             Tap <strong>Import photos</strong> and choose photos from your library. Photos with
-            location data will be pinned to their country — click a highlighted country to see
-            the date and photo.
+            location data will be pinned to their country automatically — for the rest (iOS
+            strips GPS data before handing photos to a website), you'll be asked to pick the
+            country by hand. Click a highlighted country to see the date and photo.
           </p>
         </div>
       )}

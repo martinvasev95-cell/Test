@@ -1,4 +1,4 @@
-import type { ImportSummary, Visit } from '../types';
+import type { ImportSummary, PendingPhoto, Visit } from '../types';
 import { readPhotoMetadata } from './exif';
 import { findCountryForPoint } from './countries';
 import { makeThumbnail } from './thumbnail';
@@ -12,30 +12,32 @@ function makeId(): string {
 /**
  * Turns a batch of picked photo files into Visit records: reads GPS + date
  * from EXIF, reverse-geocodes to a country offline, and builds a stored
- * thumbnail. Photos without usable GPS data are skipped since there's
- * nowhere on the map to put them.
+ * thumbnail. Photos with no usable GPS — notably, every photo picked via
+ * iOS Safari, since iOS strips location data before handing photos to a
+ * website — come back as "pending" instead of being dropped, so the caller
+ * can offer manual country assignment.
  */
 export async function importPhotos(
   files: File[],
   onProgress?: (done: number, total: number) => void,
-): Promise<{ visits: Visit[]; summary: ImportSummary }> {
+): Promise<{ visits: Visit[]; pending: PendingPhoto[]; summary: ImportSummary }> {
   const visits: Visit[] = [];
-  let skippedNoGps = 0;
-  let skippedNoCountryMatch = 0;
+  const pending: PendingPhoto[] = [];
 
   for (let i = 0; i < files.length; i++) {
     const file = files[i];
     const { lat, lng, dateTaken } = await readPhotoMetadata(file);
+    const dateTakenIso = dateTaken ? dateTaken.toISOString() : null;
+    const country = lat !== null && lng !== null ? findCountryForPoint(lng, lat) : null;
 
-    if (lat === null || lng === null) {
-      skippedNoGps++;
-      onProgress?.(i + 1, files.length);
-      continue;
-    }
-
-    const country = findCountryForPoint(lng, lat);
     if (!country) {
-      skippedNoCountryMatch++;
+      const photoDataUrl = await makeThumbnail(file);
+      pending.push({
+        id: makeId(),
+        fileName: file.name,
+        dateTaken: dateTakenIso,
+        photoDataUrl,
+      });
       onProgress?.(i + 1, files.length);
       continue;
     }
@@ -46,7 +48,7 @@ export async function importPhotos(
       id: makeId(),
       countryId: String(country.id),
       countryName: country.properties?.name ?? 'Unknown',
-      dateTaken: dateTaken ? dateTaken.toISOString() : null,
+      dateTaken: dateTakenIso,
       lat,
       lng,
       photoDataUrl,
@@ -59,10 +61,10 @@ export async function importPhotos(
 
   return {
     visits,
+    pending,
     summary: {
       imported: visits.length,
-      skippedNoGps,
-      skippedNoCountryMatch,
+      pending: pending.length,
       total: files.length,
     },
   };

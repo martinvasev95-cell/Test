@@ -1,17 +1,19 @@
 import { useEffect, useMemo, useState } from 'react';
 import './App.css';
+import { formatWeekRange } from './lib/calendar';
 import { HABITS } from './lib/habits';
 import {
+  buildWeeks,
   computeStreak,
   cycleStatus,
-  lastNDays,
+  groupByMonth,
   loadData,
   saveData,
+  summarizeDays,
   toDateKey,
 } from './lib/storage';
 import type { DayEntry, HabitId, TrackerData } from './types';
 
-const HISTORY_DAYS = 14;
 const HABIT_IDS = HABITS.map((h) => h.id);
 
 export default function App() {
@@ -35,7 +37,7 @@ export default function App() {
 
   const doneCount = HABITS.filter((h) => todayEntry[h.id] === 'done').length;
   const streak = useMemo(() => computeStreak(data, HABIT_IDS), [data]);
-  const history = useMemo(() => lastNDays(HISTORY_DAYS), []);
+  const monthGroups = useMemo(() => groupByMonth(buildWeeks(data, today)), [data, today]);
 
   function toggle(dateKey: string, habitId: HabitId) {
     setData((prev) => {
@@ -87,10 +89,9 @@ export default function App() {
       </section>
 
       <section className="history">
-        <h2>Last {HISTORY_DAYS} days</h2>
         <div className="history__head">
-          <span className="history__date" aria-hidden="true" />
-          <div className="history__dots">
+          <h2>Log</h2>
+          <div className="history__cols">
             {HABITS.map((habit) => (
               <span key={habit.id} className="history__abbr" title={habit.label}>
                 {habit.label[0]}
@@ -98,39 +99,67 @@ export default function App() {
             ))}
           </div>
         </div>
-        <div className="history__rows">
-          {history.map((date) => {
-            const key = toDateKey(date);
-            const entry = data[key] ?? {};
-            const isToday = key === todayKeyStr;
+
+        {monthGroups.map((month) => {
+            const monthDays = month.weeks.flatMap((w) => w.days);
+            const monthSummary = summarizeDays(monthDays, data, HABIT_IDS);
             return (
-              <div
-                key={key}
-                className={`history__row${isToday ? ' history__row--today' : ''}`}
-              >
-                <span className="history__date">
-                  {date.toLocaleDateString(undefined, {
-                    weekday: 'short',
-                    month: 'numeric',
-                    day: 'numeric',
-                  })}
-                </span>
-                <div className="history__dots">
-                  {HABITS.map((habit) => (
-                    <button
-                      key={habit.id}
-                      type="button"
-                      className={`dot dot--${entry[habit.id] ?? 'unset'}`}
-                      onClick={() => toggle(key, habit.id)}
-                      aria-label={`${habit.label}, ${date.toDateString()}`}
-                      title={habit.label}
-                    />
-                  ))}
+              <div key={month.key} className="month">
+                <div className="month__head">
+                  <h3>{month.label}</h3>
+                  <span className="month__summary">
+                    {monthSummary.fullDays}/{monthSummary.totalDays} full days · {monthSummary.pct}%
+                  </span>
                 </div>
+
+                {month.weeks.map((week) => {
+                    const weekSummary = summarizeDays(week.days, data, HABIT_IDS);
+                    const isCurrentWeek = week.days.some((d) => toDateKey(d) === todayKeyStr);
+                    const weekEnd = week.days[week.days.length - 1];
+                    return (
+                      <div key={toDateKey(week.monday)} className="week">
+                        <div className="week__head">
+                          <span className="week__range">
+                            {isCurrentWeek ? 'This week' : formatWeekRange(week.monday, weekEnd)}
+                          </span>
+                          <span className="week__summary">
+                            {weekSummary.fullDays}/{weekSummary.totalDays} full · {weekSummary.pct}%
+                          </span>
+                        </div>
+                        <div className="week__rows">
+                          {week.days.map((day) => {
+                            const key = toDateKey(day);
+                            const entry = data[key] ?? {};
+                            const isToday = key === todayKeyStr;
+                            return (
+                              <div key={key} className={`history__row${isToday ? ' history__row--today' : ''}`}>
+                                <span className="history__date">
+                                  {isToday
+                                    ? 'Today'
+                                    : day.toLocaleDateString(undefined, { weekday: 'short', day: 'numeric' })}
+                                </span>
+                                <div className="history__dots">
+                                  {HABITS.map((habit) => (
+                                    <button
+                                      key={habit.id}
+                                      type="button"
+                                      className={`dot dot--${entry[habit.id] ?? 'unset'}`}
+                                      onClick={() => toggle(key, habit.id)}
+                                      aria-label={`${habit.label}, ${day.toDateString()}`}
+                                      title={habit.label}
+                                    />
+                                  ))}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    );
+                  })}
               </div>
             );
           })}
-        </div>
       </section>
 
       <footer className="app__footer">

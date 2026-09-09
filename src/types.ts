@@ -1,4 +1,4 @@
-export type HabitId = 'gym' | 'run' | 'fuel' | 'macros';
+export type HabitId = 'gym' | 'run' | 'fuel' | 'macros' | 'abs';
 
 export interface Habit {
   id: HabitId;

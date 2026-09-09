@@ -35,7 +35,7 @@
 
 .today__bubbles {
   display: flex;
-  gap: 12px;
+  gap: 10px;
   flex-wrap: wrap;
   justify-content: center;
 }
@@ -45,7 +45,7 @@
   flex-direction: column;
   align-items: center;
   gap: 8px;
-  width: 84px;
+  width: 74px;
   padding: 4px;
   border: none;
   background: none;
@@ -53,8 +53,8 @@
 }
 
 .bubble__dot {
-  width: 64px;
-  height: 64px;
+  width: 56px;
+  height: 56px;
   border-radius: 50%;
   background: var(--bg-alt);
   border: 2px solid var(--border);
@@ -112,6 +112,11 @@
   justify-content: space-between;
 }
 
+.history__cols {
+  display: flex;
+  gap: 10px;
+}
+
 .history__abbr {
   display: inline-block;
   width: 22px;
@@ -119,7 +124,70 @@
   font-size: 0.72rem;
 }
 
-.history__rows {
+/* Month groups */
+
+.month {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.month + .month {
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+}
+
+.month__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.month__head h3 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-h);
+}
+
+.month__summary {
+  font-size: 0.76rem;
+  white-space: nowrap;
+}
+
+/* Week groups */
+
+.week {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.week + .week {
+  margin-top: 12px;
+}
+
+.week__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 2px;
+}
+
+.week__range {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-h);
+}
+
+.week__summary {
+  font-size: 0.72rem;
+  white-space: nowrap;
+}
+
+.week__rows {
   display: flex;
   flex-direction: column;
   border-top: 1px solid var(--border);

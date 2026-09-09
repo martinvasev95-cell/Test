@@ -1,7 +1,14 @@
-// Minimal offline cache for the Daily Check-In app: stale-while-revalidate
-// for same-origin GET requests. Bump CACHE_NAME to force old caches out on
-// a redeploy — the activate handler clears anything with a different name.
-const CACHE_NAME = 'daily-checkin-v1';
+// Minimal offline cache for the Daily Check-In app: network-first for
+// same-origin GET requests, falling back to the cache only when the network
+// fetch fails (i.e. you're offline). This is deliberately NOT
+// stale-while-revalidate — that strategy always serves the cached copy
+// first, which meant a redeploy could take two full closes-and-reopens (or
+// never, if the app was only ever backgrounded) to actually show up.
+// Network-first means you get today's version whenever you have signal, and
+// the cached one only as a fallback with no connection. Bump CACHE_NAME on
+// a future change to this file to force old caches out (the activate
+// handler clears anything with a different name).
+const CACHE_NAME = 'daily-checkin-v2';
 
 self.addEventListener('install', () => {
   self.skipWaiting();
@@ -22,15 +29,14 @@ self.addEventListener('fetch', (event) => {
   if (url.origin !== self.location.origin) return;
 
   event.respondWith(
-    caches.open(CACHE_NAME).then(async (cache) => {
-      const cached = await cache.match(event.request);
-      const network = fetch(event.request)
-        .then((response) => {
-          if (response.ok) cache.put(event.request, response.clone());
-          return response;
-        })
-        .catch(() => cached);
-      return cached || network;
-    }),
+    fetch(event.request)
+      .then((response) => {
+        if (response.ok) {
+          const copy = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+        }
+        return response;
+      })
+      .catch(() => caches.match(event.request)),
   );
 });

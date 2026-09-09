@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - claude/travel-map-photos-o6f6lt
+      - claude/daily-health-tracker-vm2nkv
       - main
   workflow_dispatch: {}
 

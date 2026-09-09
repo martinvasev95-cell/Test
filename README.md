@@ -1,39 +1,64 @@
-# Travel Map
+# Daily Check-In
 
-A private, offline-first map of the countries you've visited, built from
-your own photos. Import photos from your phone's library, and any photo
-with location data gets pinned to its country — click a highlighted
-country to see the date and photo.
+A tiny, private daily habit tracker: five bubbles you tap green or red for
+whether you've done each thing today.
+
+- **Gym**
+- **Run**
+- **Protein / Creatine**
+- **Macros** (tracked macros / ate clean)
+- **Abs**
 
 ## How it works
 
-- **Import** taps the browser's native photo picker (`<input type="file"
-  accept="image/*" multiple>`). On an iPhone, opening this in Safari and
-  tapping "Import photos" brings up the actual Photos library picker —
-  there's no other way for a website to reach a device's photo library,
-  since iOS doesn't expose one to the browser.
-- **Location & date** are read straight out of each photo's EXIF data
-  (GPS coordinates + capture date), entirely in the browser.
-- **Country matching** is done offline with a point-in-polygon lookup
-  against bundled world boundaries — no geocoding API, no network call.
-- **Storage** is your browser's IndexedDB, on-device only. Nothing is
-  uploaded anywhere. That also means the data is local to one browser —
-  it won't sync across devices, and clearing site data clears it.
-- Photos are resized/compressed on import (max 1400px, JPEG) so a
-  trip's worth of photos doesn't blow past storage limits.
+- Tap a bubble to cycle it: **not logged** (grey) → **done** (green) →
+  **missed** (red) → back to not logged. One tap for the common case
+  (marking something done), a second if you need to correct it.
+- A **streak** counter shows how many days in a row you've gone 5-for-5.
+  Today only joins the streak once it's fully checked off, so it doesn't
+  reset to zero every morning before you've logged anything.
+- The **log** below today's bubbles is grouped by **week (Monday–Sunday)**
+  and **month**, each with its own summary (full days logged, and % of
+  habits completed) — so a bad week doesn't hide inside "the last 14 days"
+  once it's over. Tap any day's dots to fix one you forgot to log. A brand
+  new tracker shows a few weeks of empty calendar structure; it keeps
+  extending back through your history (up to ~3 months at a time) as you
+  use it.
+- **Storage** is your browser's `localStorage`, on-device only. Nothing is
+  uploaded anywhere. That means it's local to one browser (won't sync
+  across devices) and clearing site data clears it.
 
-### About location data on iPhone
+## Installing it as an app
 
-iOS strips GPS metadata from photos before handing them to a website,
-even when the original photo is geotagged — this is a platform privacy
-restriction, not something a website can opt out of. In practice this
-means **most photos picked via Safari on iPhone will have no location
-data**, no matter how the photo was originally taken. When that happens,
-the photo isn't dropped — it shows up in a "couldn't detect a location"
-list where you pick the country by hand (the capture date is usually
-still present, since only location is scrubbed). Photos genuinely
-missing both GPS and a capture date (e.g. screenshots) can still be
-kept this way, just with the date left blank.
+This is an installable PWA (Progressive Web App): once it's hosted over
+HTTPS (see Deploying below), you can add it to your phone's home screen
+and it opens full-screen, with its own icon, like a native app.
+
+- **iPhone (Safari)**: open the site → Share → **Add to Home Screen**.
+- **Android (Chrome)**: open the site → menu (⋮) → **Add to Home screen** /
+  **Install app**.
+- **Desktop (Chrome/Edge)**: click the install icon in the address bar, or
+  menu → **Install Daily Check-In**.
+
+It also works offline after the first visit — a small service worker
+(`public/sw.js`) caches the app shell so you can still log a day with no
+signal.
+
+## Why manual input instead of Oura / Whoop / Apple Health / Equinox
+
+Those all need a live backend: an OAuth app registered with each provider,
+a server to hold client secrets and refresh tokens, and (for Apple Health)
+a native iOS app, since Health data isn't reachable from a website at all.
+This app is a static site with no server, so wiring one up wasn't a "make
+it fancier" choice so much as a different, much bigger project — and combined,
+those providers each behave differently enough that "just track a boolean"
+would tell you less than tapping a bubble does. Manual input also keeps
+your data private and instant to use.
+
+If you want to add one later, the natural entry point is `DayEntry` in
+`src/types.ts` — add a `source: 'manual' | 'oura' | ...` field, and a sync
+step that calls that provider's API (from a small backend you control) and
+merges results into the same `TrackerData` shape the UI already renders.
 
 ## Development
 
@@ -48,5 +73,5 @@ npm run lint      # oxlint
 
 `npm run build` produces a static `dist/` folder — it can be hosted
 anywhere that serves static files (GitHub Pages, Netlify, Vercel, etc.).
-Since it needs to run in your phone's browser to use the photo picker,
-serving it over HTTPS is required.
+A PWA install prompt and the offline service worker both require HTTPS,
+which GitHub Pages provides by default.

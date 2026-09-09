@@ -6,7 +6,11 @@
   display: flex;
   flex-direction: column;
   gap: 32px;
-  padding: 40px 20px 32px;
+  /* Installed as a standalone app (see apple-mobile-web-app-capable in
+     index.html), the page draws under the iOS status bar/notch instead of
+     behind Safari's chrome — pad by the safe area so the header clears it,
+     and do the same at the bottom for the home indicator. */
+  padding: calc(24px + env(safe-area-inset-top)) 20px calc(32px + env(safe-area-inset-bottom));
 }
 
 .app__header {

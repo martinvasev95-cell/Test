@@ -34,48 +34,56 @@
 }
 
 .today__bubbles {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  justify-content: center;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
 }
 
 .bubble {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
-  width: 74px;
-  padding: 4px;
+  gap: 10px;
+  padding: 4px 0 0;
   border: none;
   background: none;
   color: var(--text);
 }
 
 .bubble__dot {
-  width: 56px;
-  height: 56px;
+  width: 100%;
+  max-width: 64px;
+  aspect-ratio: 1;
   border-radius: 50%;
   background: var(--bg-alt);
-  border: 2px solid var(--border);
+  border: 2.5px solid var(--border);
+  box-shadow: var(--shadow);
   transition:
     background-color 0.15s ease,
     border-color 0.15s ease,
+    box-shadow 0.15s ease,
     transform 0.1s ease;
 }
 
 .bubble:active .bubble__dot {
-  transform: scale(0.93);
+  transform: scale(0.93) translateY(0);
+}
+
+.bubble--done .bubble__dot,
+.bubble--missed .bubble__dot {
+  transform: translateY(-2px);
 }
 
 .bubble--done .bubble__dot {
   background: var(--green);
   border-color: var(--green);
+  box-shadow: var(--shadow), 0 0 0 4px var(--green-bg);
 }
 
 .bubble--missed .bubble__dot {
   background: var(--red);
   border-color: var(--red);
+  box-shadow: var(--shadow), 0 0 0 4px var(--red-bg);
 }
 
 .bubble__label {

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import './App.css';
 import { formatWeekRange } from './lib/calendar';
 import { HABITS } from './lib/habits';
+import { buildHighlight } from './lib/highlights';
 import {
   buildWeeks,
   computeStreak,
@@ -37,6 +38,7 @@ export default function App() {
 
   const doneCount = HABITS.filter((h) => todayEntry[h.id] === 'done').length;
   const streak = useMemo(() => computeStreak(data, HABIT_IDS), [data]);
+  const highlight = useMemo(() => buildHighlight(data, HABITS, today), [data, today]);
   const monthGroups = useMemo(() => groupByMonth(buildWeeks(data, today)), [data, today]);
 
   function toggle(dateKey: string, habitId: HabitId) {
@@ -82,6 +84,14 @@ export default function App() {
             </button>
           ))}
         </div>
+
+        <div className="highlight">
+          <span className="highlight__icon" aria-hidden="true">
+            {highlight.icon}
+          </span>
+          <span className="highlight__text">{highlight.text}</span>
+        </div>
+
         <p className="today__summary">
           {doneCount} of {HABITS.length} done today
           {streak > 1 && <span className="today__streak"> · 🔥 {streak} day streak</span>}

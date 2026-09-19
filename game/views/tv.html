@@ -1,0 +1,496 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Cola &amp; Crumb</title>
+<link rel="icon" href="/favicon.svg">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="/app.css">
+<style>
+  html, body { height: 100%; overflow: hidden; }
+
+  /* A canvas is a replaced element: inset:0 alone leaves it at its intrinsic
+     300x150, so the drawing has to be given the viewport explicitly. */
+  #bubbles, #confetti {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+  }
+
+  #bubbles { z-index: 0; }
+
+  .stage {
+    position: relative;
+    z-index: 1;
+    height: 100%;
+    display: grid;
+    grid-template-rows: auto 1fr;
+    padding: 2.2vmin 3vmin;
+    gap: 2vmin;
+  }
+
+  .tv-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2rem;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 1.4vmin;
+  }
+
+  .mark { font-family: var(--display); font-size: 2.6vmin; letter-spacing: 0.04em; }
+  .mark span { color: var(--amber); }
+  .tv-head .label { font-size: 1.5vmin; }
+
+  .main { display: grid; min-height: 0; }
+
+  /* ---------------------------------------------------------------- lobby */
+
+  .lobby {
+    display: grid;
+    grid-template-columns: 1.35fr 1fr;
+    gap: 4vmin;
+    align-items: center;
+    min-height: 0;
+  }
+
+  .lobby h1 { font-size: 11vmin; }
+  .lobby h1 em { font-style: normal; color: var(--amber); display: block; }
+  .lobby .blurb { font-size: 2.2vmin; color: var(--muted); max-width: 30ch; margin: 2vmin 0 0; }
+
+  .joinbox {
+    justify-self: end;
+    text-align: center;
+    background: var(--cream);
+    color: #14170f;
+    padding: 2.4vmin;
+    border-radius: 4px;
+    box-shadow: 0 2vmin 6vmin rgba(0, 0, 0, 0.55);
+    max-width: 42vmin;
+  }
+
+  .joinbox img { width: 100%; display: block; border-radius: 2px; }
+  .joinbox .url {
+    font-family: var(--display);
+    font-size: 2.6vmin;
+    margin-top: 1.4vmin;
+    letter-spacing: 0.02em;
+    word-break: break-all;
+  }
+  .joinbox .say { font-size: 1.5vmin; letter-spacing: 0.16em; text-transform: uppercase; color: #6a6553; font-weight: 700; }
+
+  .roster { display: flex; flex-wrap: wrap; gap: 1vmin; margin-top: 3vmin; max-height: 30vh; overflow: hidden; }
+  .who {
+    font-family: var(--display);
+    font-size: 2.4vmin;
+    letter-spacing: 0.03em;
+    border: 1px solid var(--line-strong);
+    border-radius: 999px;
+    padding: 0.5vmin 1.6vmin;
+    animation: pop 0.35s ease both;
+  }
+  .who[data-in] { border-color: var(--good); color: var(--good); }
+
+  @keyframes pop { from { opacity: 0; transform: scale(0.85); } to { opacity: 1; transform: none; } }
+
+  /* -------------------------------------------------------------- tasting */
+
+  .now { display: grid; place-content: center; text-align: center; gap: 1vmin; }
+  .now .kicker { font-size: 2.4vmin; letter-spacing: 0.3em; text-transform: uppercase; color: var(--amber); }
+  .now h1 { font-size: 22vmin; line-height: 0.85; }
+  .now .ask { font-size: 3.4vmin; color: var(--cream); }
+  .now .tally { font-size: 2vmin; color: var(--muted); margin-top: 2vmin; }
+
+  .dots { display: flex; justify-content: center; gap: 1.1vmin; margin-top: 3vmin; flex-wrap: wrap; }
+  .dot { width: 1.5vmin; height: 1.5vmin; border-radius: 50%; border: 1px solid var(--line-strong); }
+  .dot[data-on] { background: var(--good); border-color: var(--good); }
+
+  /* --------------------------------------------------------------- reveal */
+
+  .reveal { display: grid; grid-template-columns: 1fr 26vmin; gap: 3vmin; min-height: 0; }
+
+  .spotlight { display: grid; align-content: center; gap: 1.5vmin; min-height: 0; }
+  .spotlight .place { font-size: 2.6vmin; letter-spacing: 0.28em; text-transform: uppercase; color: var(--amber); }
+  .spotlight h1 { font-size: clamp(3rem, 11vmin, 14rem); }
+  .spotlight .subtotals { font-size: 2.2vmin; color: var(--muted); }
+
+  .scoreline { display: flex; align-items: center; gap: 3vmin; }
+  .scoreline .cap { width: 18vmin; --cap-edge: var(--amber); --cap-face: var(--amber); }
+  .scoreline .cap span { font-size: 9vmin; }
+
+  .card-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 0.8vmin; margin-top: 1vmin; }
+  .cell {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-top: 3px solid var(--bad);
+    border-radius: 3px;
+    padding: 0.8vmin 1vmin;
+    animation: rise 0.4s ease both;
+  }
+  .cell[data-ok] { border-top-color: var(--good); }
+  .cell .label { font-size: 1.15vmin; }
+  .cell b { display: block; font-size: 1.5vmin; font-weight: 600; line-height: 1.2; }
+  .cell small { display: block; font-size: 1.25vmin; color: var(--muted); }
+
+  @keyframes rise { from { opacity: 0; transform: translateY(0.8vmin); } to { opacity: 1; transform: none; } }
+
+  .rail { border-left: 1px solid var(--line); padding-left: 2vmin; overflow: hidden; display: flex; flex-direction: column; gap: 0.9vmin; }
+  .rail .label { margin-bottom: 0.5vmin; }
+  .rail-row { display: flex; align-items: baseline; gap: 1vmin; animation: pop 0.3s ease both; }
+  .rail-row .rank { font-family: var(--display); color: var(--muted); font-size: 1.9vmin; width: 3.4vmin; }
+  .rail-row .nm { font-family: var(--display); font-size: 2.2vmin; letter-spacing: 0.02em; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .rail-row .pts { font-family: var(--display); font-size: 2.2vmin; color: var(--amber); }
+  .rail-row[data-top] .nm, .rail-row[data-top] .rank { color: var(--amber); }
+
+  .drumroll { display: grid; place-content: center; text-align: center; gap: 2vmin; }
+  .drumroll h1 { font-size: 13vmin; }
+  .drumroll p { font-size: 2.6vmin; color: var(--muted); }
+
+  .winner .place { color: #ffd479; }
+  .winner h1 { color: #ffd479; text-shadow: 0 0 6vmin rgba(255, 212, 121, 0.35); }
+  .winner .cap { --cap-edge: #ffd479; --cap-face: #ffd479; }
+
+  #confetti { z-index: 5; }
+
+  /* ----------------------------------------------------------------- done */
+
+  .final { display: grid; grid-template-columns: 1.1fr 1fr; gap: 4vmin; min-height: 0; }
+  .final h1 { font-size: 7vmin; margin-bottom: 1.5vmin; }
+  .board { display: flex; flex-direction: column; gap: 0.7vmin; overflow: hidden; }
+  .board-row { display: flex; align-items: baseline; gap: 1.4vmin; padding-bottom: 0.5vmin; border-bottom: 1px solid var(--line); }
+  .board-row .rank { font-family: var(--display); font-size: 2.6vmin; color: var(--muted); width: 4vmin; }
+  .board-row .nm { font-family: var(--display); font-size: 2.9vmin; flex: 1; }
+  .board-row .pts { font-family: var(--display); font-size: 2.9vmin; color: var(--amber); }
+  .board-row:first-child .rank, .board-row:first-child .nm { color: #ffd479; }
+
+  .answers { overflow: hidden; }
+  .answers h2 { font-size: 3vmin; margin-bottom: 1.2vmin; color: var(--cola); }
+  .ans-row { display: flex; justify-content: space-between; gap: 1vmin; font-size: 1.9vmin; padding: 0.35vmin 0; border-bottom: 1px solid rgba(243,236,216,.07); }
+  .ans-row .k { font-family: var(--display); letter-spacing: 0.03em; color: var(--muted); }
+  .ans-row .v { font-weight: 600; }
+
+  .empty { display: grid; place-content: center; text-align: center; color: var(--muted); font-size: 2.4vmin; }
+</style>
+</head>
+<body>
+<canvas id="bubbles"></canvas>
+<canvas id="confetti"></canvas>
+
+<div class="stage">
+  <header class="tv-head">
+    <div class="mark">COLA &amp; <span>CRUMB</span></div>
+    <div class="label" id="headnote"></div>
+  </header>
+  <div class="main" id="main"></div>
+</div>
+
+<script src="/app.js"></script>
+<script>
+(() => {
+  const main = document.getElementById('main');
+  const headnote = document.getElementById('headnote');
+  let state = null;
+  let lastRevealIndex = -2;
+  let lastPhase = null;
+
+  const ordinal = (n) => {
+    const teens = n % 100;
+    if (teens >= 11 && teens <= 13) return `${n}th`;
+    return `${n}${['th', 'st', 'nd', 'rd'][n % 10] ?? 'th'}`;
+  };
+
+  const nameOf = (kind, id) => {
+    const list = kind === 'cola' ? state.colas : state.breads;
+    const found = list.find((item) => item.id === id);
+    return found ? found.name : '—';
+  };
+
+  /* ---------------------------------------------------------------- lobby */
+
+  function renderLobby() {
+    const joined = state.players.length;
+    headnote.textContent = joined ? `${joined} playing` : 'waiting for players';
+
+    main.replaceChildren(
+      el('div', { class: 'lobby' }, [
+        el('div', {}, [
+          el('h1', {}, [document.createTextNode('Blind'), el('em', { text: 'Tasting' })]),
+          el('p', { class: 'blurb', text: 'Seven colas and four breads, all unlabelled. Scan the code, put your name in, and guess your way through.' }),
+          el('div', { class: 'roster' }, state.players.map((p) =>
+            el('div', { class: 'who', 'data-in': p.submitted || null, text: p.name }))),
+          joined ? null : el('p', { class: 'blurb', text: 'Nobody has joined yet.' }),
+        ]),
+        el('div', { class: 'joinbox' }, [
+          el('div', { class: 'say', text: 'Scan to play' }),
+          el('img', { src: '/qr.svg', alt: `QR code for ${state.joinUrl}`, style: 'margin-top:1.2vmin' }),
+          el('div', { class: 'url', text: state.joinUrl.replace(/^https?:\/\//, '') }),
+        ]),
+      ]),
+    );
+  }
+
+  /* -------------------------------------------------------------- tasting */
+
+  function renderTasting() {
+    const kind = state.current.kind;
+    const index = state.current.index;
+    const label = (kind === 'cola' ? state.glassLabels : state.sliceLabels)[index];
+    const players = state.players;
+
+    headnote.textContent = `${players.length} playing · ${players.filter((p) => p.submitted).length} cards in`;
+
+    main.replaceChildren(
+      el('div', { class: 'now' }, [
+        el('div', { class: 'kicker', text: kind === 'cola' ? 'Now pouring' : 'Now slicing' }),
+        el('h1', { text: label }),
+        el('div', { class: 'ask', text: 'Key in your vote' }),
+        el('div', { class: 'dots' }, players.map((p) =>
+          el('div', { class: 'dot', 'data-on': p.submitted || null, title: p.name }))),
+        el('div', { class: 'tally', text: players.length
+          ? `${players.filter((p) => p.submitted).length} of ${players.length} cards handed in`
+          : 'Nobody has joined yet' }),
+      ]),
+    );
+  }
+
+  function renderLocked() {
+    const inCount = state.players.filter((p) => p.submitted).length;
+    headnote.textContent = `${inCount} cards in`;
+    main.replaceChildren(
+      el('div', { class: 'now' }, [
+        el('div', { class: 'kicker', text: 'Voting closed' }),
+        el('h1', { text: 'Cards in' }),
+        el('div', { class: 'ask', text: `${inCount} ${inCount === 1 ? 'card' : 'cards'} on the table. Nobody move.` }),
+      ]),
+    );
+  }
+
+  /* --------------------------------------------------------------- reveal */
+
+  function renderReveal() {
+    const { shown, index, count } = state.reveal;
+    headnote.textContent = `${index + 1} of ${count} revealed`;
+
+    if (index < 0 || !shown.length) {
+      main.replaceChildren(
+        el('div', { class: 'drumroll' }, [
+          el('h1', {}, [document.createTextNode('The '), el('em', { style: 'font-style:normal;color:var(--amber)', text: 'Results' })]),
+          el('p', { text: `Lowest score first. ${count} ${count === 1 ? 'card' : 'cards'} to get through.` }),
+        ]),
+      );
+      return;
+    }
+
+    const featured = shown[shown.length - 1];
+    const isWinner = index === count - 1;
+    const ranked = [...shown].sort((a, b) => a.rank - b.rank);
+
+    let delay = 0;
+    const cells = [];
+    for (const kind of ['cola', 'bread']) {
+      const labels = kind === 'cola' ? state.glassLabels : state.sliceLabels;
+      labels.forEach((label, i) => {
+        const truth = state.reveal.key ? state.reveal.key[kind][i] : null;
+        const guess = featured.picks ? featured.picks[kind][i] : null;
+        const ok = truth && guess === truth;
+        cells.push(
+          el('div', { class: 'cell', 'data-ok': ok || null, style: `animation-delay:${delay}ms` }, [
+            el('div', { class: 'label', text: label }),
+            el('b', { text: guess ? nameOf(kind, guess) : 'No answer' }),
+            ok ? null : el('small', { text: truth ? `was ${nameOf(kind, truth)}` : '' }),
+          ]),
+        );
+        delay += 45;
+      });
+    }
+
+    main.replaceChildren(
+      el('div', { class: 'reveal' }, [
+        el('div', { class: 'spotlight' + (isWinner ? ' winner' : '') }, [
+          el('div', { class: 'place', text: isWinner ? 'Winner' : `${ordinal(featured.rank)} place` }),
+          el('h1', { text: featured.name }),
+          el('div', { class: 'scoreline' }, [
+            el('div', { class: 'cap' }, [el('span', { class: 'num', id: 'bigscore', text: '0' })]),
+            el('div', {}, [
+              el('div', { class: 'subtotals num', text: `out of ${state.total}` }),
+              el('div', { class: 'subtotals num', text: `${featured.cola} of ${state.colas.length} colas` }),
+              el('div', { class: 'subtotals num', text: `${featured.bread} of ${state.breads.length} breads` }),
+            ]),
+          ]),
+          el('div', { class: 'card-grid' }, cells),
+        ]),
+        el('div', { class: 'rail' }, [
+          el('div', { class: 'label', text: 'So far' }),
+          ...ranked.map((row) =>
+            el('div', { class: 'rail-row', 'data-top': row.id === featured.id || null }, [
+              el('div', { class: 'rank', text: ordinal(row.rank) }),
+              el('div', { class: 'nm', text: row.name }),
+              el('div', { class: 'pts num', text: String(row.total) }),
+            ])),
+        ]),
+      ]),
+    );
+
+    countUp(document.getElementById('bigscore'), featured.total);
+    if (isWinner) confetti();
+  }
+
+  function countUp(node, target) {
+    if (!node) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || target === 0) {
+      node.textContent = String(target);
+      return;
+    }
+    const started = performance.now();
+    const duration = 1100;
+    const tick = (now) => {
+      const t = Math.min(1, (now - started) / duration);
+      const eased = 1 - Math.pow(1 - t, 3);
+      node.textContent = String(Math.round(eased * target));
+      if (t < 1) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  }
+
+  /* ----------------------------------------------------------------- done */
+
+  function renderDone() {
+    const rows = [...state.reveal.shown].sort((a, b) => a.rank - b.rank);
+    headnote.textContent = 'Final';
+
+    const answers = [];
+    for (const kind of ['cola', 'bread']) {
+      const labels = kind === 'cola' ? state.glassLabels : state.sliceLabels;
+      labels.forEach((label, i) => {
+        const truth = state.reveal.key ? state.reveal.key[kind][i] : null;
+        answers.push(
+          el('div', { class: 'ans-row' }, [
+            el('div', { class: 'k', text: label }),
+            el('div', { class: 'v', text: truth ? nameOf(kind, truth) : '—' }),
+          ]),
+        );
+      });
+    }
+
+    main.replaceChildren(
+      el('div', { class: 'final' }, [
+        el('div', {}, [
+          el('h1', { text: 'Final table' }),
+          el('div', { class: 'board' }, rows.map((row) =>
+            el('div', { class: 'board-row' }, [
+              el('div', { class: 'rank', text: ordinal(row.rank) }),
+              el('div', { class: 'nm', text: row.name }),
+              el('div', { class: 'pts num', text: `${row.total}/${state.total}` }),
+            ]))),
+        ]),
+        el('div', { class: 'answers' }, [
+          el('h2', { text: 'What was what' }),
+          ...answers,
+        ]),
+      ]),
+    );
+  }
+
+  /* ------------------------------------------------------------- graphics */
+
+  function fit(canvas) {
+    const ratio = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width = canvas.clientWidth * ratio;
+    canvas.height = canvas.clientHeight * ratio;
+    return canvas.getContext('2d');
+  }
+
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  (function bubbles() {
+    const canvas = document.getElementById('bubbles');
+    let ctx = fit(canvas);
+    let drops = [];
+    const seed = () => {
+      drops = Array.from({ length: 40 }, () => ({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        r: (Math.random() * 3 + 1) * (window.devicePixelRatio || 1),
+        v: Math.random() * 0.35 + 0.12,
+      }));
+    };
+    seed();
+    window.addEventListener('resize', () => { ctx = fit(canvas); seed(); });
+    if (reduced) return;
+    const frame = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.strokeStyle = 'rgba(232,163,61,.16)';
+      ctx.lineWidth = 1;
+      for (const d of drops) {
+        d.y -= d.v * (window.devicePixelRatio || 1);
+        if (d.y < -10) { d.y = canvas.height + 10; d.x = Math.random() * canvas.width; }
+        ctx.beginPath();
+        ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+      requestAnimationFrame(frame);
+    };
+    frame();
+  })();
+
+  function confetti() {
+    const canvas = document.getElementById('confetti');
+    const ctx = fit(canvas);
+    if (reduced) return;
+    const colors = ['#e8a33d', '#ffd479', '#b23a2e', '#f3ecd8', '#8fbf4c'];
+    const bits = Array.from({ length: 160 }, () => ({
+      x: canvas.width / 2 + (Math.random() - 0.5) * canvas.width * 0.5,
+      y: canvas.height * 0.45,
+      vx: (Math.random() - 0.5) * 16,
+      vy: Math.random() * -18 - 5,
+      w: Math.random() * 9 + 4,
+      h: Math.random() * 5 + 3,
+      spin: (Math.random() - 0.5) * 0.3,
+      a: Math.random() * Math.PI,
+      color: colors[Math.floor(Math.random() * colors.length)],
+    }));
+    const started = performance.now();
+    const frame = (now) => {
+      const life = now - started;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      for (const b of bits) {
+        b.vy += 0.42;
+        b.x += b.vx;
+        b.y += b.vy;
+        b.a += b.spin;
+        ctx.save();
+        ctx.translate(b.x, b.y);
+        ctx.rotate(b.a);
+        ctx.fillStyle = b.color;
+        ctx.globalAlpha = Math.max(0, 1 - life / 4200);
+        ctx.fillRect(-b.w / 2, -b.h / 2, b.w, b.h);
+        ctx.restore();
+      }
+      if (life < 4200) requestAnimationFrame(frame);
+      else ctx.clearRect(0, 0, canvas.width, canvas.height);
+    };
+    requestAnimationFrame(frame);
+  }
+
+  /* ------------------------------------------------------------ lifecycle */
+
+  connect((next) => {
+    state = next;
+    const movedOn = state.phase !== lastPhase || state.reveal.index !== lastRevealIndex;
+    lastPhase = state.phase;
+    lastRevealIndex = state.reveal.index;
+
+    if (state.phase === 'lobby') renderLobby();
+    else if (state.phase === 'tasting') renderTasting();
+    else if (state.phase === 'locked') renderLocked();
+    else if (state.phase === 'reveal') { if (movedOn || !main.querySelector('.reveal')) renderReveal(); }
+    else renderDone();
+  });
+})();
+</script>
+</body>
+</html>

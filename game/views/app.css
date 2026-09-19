@@ -1,0 +1,193 @@
+/* Cola & Crumb — a late-night soda-fountain palette, built for a dim dining
+   room: dark ground so the TV does not glare, amber "neon" for anything the
+   room should look at, cola red for the answer key. */
+
+:root {
+  --ink: #0d0f0b;
+  --surface: #171a12;
+  --surface-2: #212518;
+  --cream: #f3ecd8;
+  --muted: #8d8879;
+  --amber: #e8a33d;
+  --amber-dim: #7a5a24;
+  --cola: #b23a2e;
+  --good: #8fbf4c;
+  --bad: #c4514a;
+  --line: rgba(243, 236, 216, 0.14);
+  --line-strong: rgba(243, 236, 216, 0.28);
+
+  --display: 'Anton', 'Haettenschweiler', 'Arial Narrow Bold', 'Arial Narrow', sans-serif;
+  --body: 'Archivo', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+
+html, body { margin: 0; }
+
+body {
+  background: var(--ink);
+  color: var(--cream);
+  font-family: var(--body);
+  font-size: 16px;
+  line-height: 1.45;
+  -webkit-text-size-adjust: 100%;
+}
+
+h1, h2, h3 {
+  font-family: var(--display);
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  line-height: 0.95;
+  text-wrap: balance;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+button, input, select { font: inherit; color: inherit; }
+
+.label {
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+}
+
+.btn {
+  appearance: none;
+  border: 1px solid var(--line-strong);
+  background: var(--surface-2);
+  color: var(--cream);
+  border-radius: 3px;
+  padding: 0.6rem 1rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, transform 0.08s;
+}
+
+.btn:hover:not(:disabled) { border-color: var(--amber); }
+.btn:active:not(:disabled) { transform: translateY(1px); }
+
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.btn-primary {
+  background: var(--amber);
+  border-color: var(--amber);
+  color: #221803;
+}
+
+.btn-primary:hover:not(:disabled) { background: #f2b355; }
+
+.btn-danger { border-color: rgba(196, 81, 74, 0.6); color: #eda49f; }
+
+:where(button, select, input, a):focus-visible {
+  outline: 2px solid var(--amber);
+  outline-offset: 2px;
+}
+
+select {
+  appearance: none;
+  width: 100%;
+  background: var(--surface-2);
+  border: 1px solid var(--line-strong);
+  border-radius: 3px;
+  padding: 0.7rem 2.2rem 0.7rem 0.8rem;
+  cursor: pointer;
+  background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%),
+    linear-gradient(135deg, var(--muted) 50%, transparent 50%);
+  background-position: right 1.05rem center, right 0.8rem center;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+}
+
+select:not([data-empty]) { border-color: var(--amber-dim); color: var(--cream); }
+select[data-empty] { color: var(--muted); }
+
+input[type='text'], input[type='tel'] {
+  width: 100%;
+  background: var(--surface-2);
+  border: 1px solid var(--line-strong);
+  border-radius: 3px;
+  padding: 0.7rem 0.8rem;
+}
+
+/* The scoreboard motif: a crimped bottle cap. */
+.cap {
+  position: relative;
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: repeating-conic-gradient(
+    var(--cap-edge, var(--amber)) 0 3.6deg,
+    transparent 3.6deg 7.2deg
+  );
+  flex: none;
+}
+
+.cap::before {
+  content: '';
+  position: absolute;
+  inset: 11%;
+  border-radius: 50%;
+  background: var(--cap-face, var(--amber));
+}
+
+.cap > * {
+  position: relative;
+  font-family: var(--display);
+  color: var(--cap-ink, #221803);
+  line-height: 1;
+}
+
+.tick { color: var(--good); }
+.cross { color: var(--bad); }
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  padding: 0.2rem 0.65rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.pill-live { border-color: var(--good); color: var(--good); }
+.pill-wait { border-color: var(--line-strong); color: var(--muted); }
+
+.num { font-variant-numeric: tabular-nums; }
+
+.stack { display: flex; flex-direction: column; }
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%) translateY(140%);
+  background: var(--cola);
+  color: #fff;
+  padding: 0.7rem 1.1rem;
+  border-radius: 3px;
+  font-weight: 600;
+  z-index: 50;
+  max-width: calc(100vw - 2rem);
+  transition: transform 0.3s ease;
+}
+
+.toast[data-show] { transform: translateX(-50%) translateY(0); }
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}

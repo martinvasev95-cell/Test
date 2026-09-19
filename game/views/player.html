@@ -1,0 +1,469 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Cola &amp; Crumb</title>
+<link rel="icon" href="/favicon.svg">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="/app.css">
+<style>
+  body { padding-bottom: 7rem; }
+
+  .wrap { max-width: 34rem; margin: 0 auto; padding: 0 1rem; }
+
+  .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: rgba(13, 15, 11, 0.94);
+    backdrop-filter: blur(6px);
+    border-bottom: 1px solid var(--line);
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+
+  .topbar-inner {
+    max-width: 34rem;
+    margin: 0 auto;
+    padding: 0.7rem 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+  }
+
+  .mark { font-family: var(--display); font-size: 1.1rem; letter-spacing: 0.02em; }
+  .mark span { color: var(--amber); }
+
+  .hero { padding: 2.5rem 0 1.5rem; }
+  .hero h1 { font-size: clamp(2.6rem, 13vw, 4rem); }
+  .hero h1 em { font-style: normal; color: var(--amber); display: block; }
+  .hero p { color: var(--muted); max-width: 26rem; }
+
+  /* The form is the thing guests come back to, so it starts near the top
+     instead of behind a full-height title. */
+  .intro { padding: 1.25rem 0 0.25rem; }
+  .intro h1 { font-size: 1.9rem; }
+  .intro p { color: var(--muted); font-size: 0.9rem; margin: 0.4rem 0 0; }
+
+  .note { color: var(--muted); font-size: 0.85rem; margin: 0 0 0.5rem; }
+
+  .section-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    margin: 2rem 0 0.75rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .section-head h2 { font-size: 1.5rem; }
+
+  .row {
+    display: grid;
+    grid-template-columns: 4.6rem 1fr;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.55rem 0;
+    border-bottom: 1px solid rgba(243, 236, 216, 0.06);
+  }
+
+  .row-label {
+    font-family: var(--display);
+    font-size: 1.05rem;
+    color: var(--cream);
+    letter-spacing: 0.03em;
+  }
+
+  .row[data-now] .row-label { color: var(--amber); }
+  .row[data-now] .row-label::after {
+    content: 'NOW';
+    display: block;
+    font-family: var(--body);
+    font-size: 0.6rem;
+    letter-spacing: 0.18em;
+    color: var(--amber);
+  }
+
+  select[data-dup] { border-color: var(--cola); }
+
+  .hint { color: var(--cola); font-size: 0.85rem; margin: 0.6rem 0 0; min-height: 1.2rem; }
+
+  .submitbar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(13, 15, 11, 0.96);
+    border-top: 1px solid var(--line);
+    padding: 0.8rem 1rem calc(0.8rem + env(safe-area-inset-bottom, 0px));
+    backdrop-filter: blur(6px);
+  }
+
+  .submitbar-inner {
+    max-width: 34rem;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+  }
+
+  .submitbar .btn-primary { flex: 1; padding-block: 0.85rem; }
+
+  .waiting { text-align: center; padding: 3rem 0; }
+  .waiting .cap { width: 8rem; margin: 0 auto 1.5rem; --cap-edge: var(--amber-dim); --cap-face: var(--surface-2); }
+  .waiting .cap span { font-size: 2.6rem; color: var(--amber); }
+  .waiting h2 { font-size: 2rem; margin-bottom: 0.5rem; }
+  .waiting p { color: var(--muted); }
+
+  .result-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr));
+    gap: 0.5rem;
+    margin-top: 1.25rem;
+  }
+
+  .result-cell {
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--bad);
+    border-radius: 3px;
+    padding: 0.5rem 0.6rem;
+    background: var(--surface);
+  }
+
+  .result-cell[data-ok] { border-left-color: var(--good); }
+  .result-cell .label { font-size: 0.62rem; }
+  .result-cell b { display: block; font-weight: 600; font-size: 0.9rem; }
+  .result-cell small { color: var(--muted); display: block; font-size: 0.75rem; }
+
+  .joincard { margin-top: 1rem; padding: 1.25rem; }
+  .joincard label { display: block; margin-bottom: 0.5rem; }
+  .joincard .btn { width: 100%; margin-top: 0.8rem; padding-block: 0.85rem; }
+  .err { color: var(--cola); min-height: 1.3rem; margin: 0.6rem 0 0; font-size: 0.9rem; }
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="mark">COLA &amp; <span>CRUMB</span></div>
+    <div id="status"></div>
+  </div>
+</header>
+
+<main class="wrap" id="app"></main>
+
+<script src="/app.js"></script>
+<script>
+(() => {
+  const app = document.getElementById('app');
+  const status = document.getElementById('status');
+
+  let me = store.get('cc-player');
+  let state = null;
+  let mine = null;
+  let lastRevealIndex = -2;
+  let view = null;
+
+  const KINDS = [
+    { kind: 'cola', title: 'The Glasses', listKey: 'colas', labelKey: 'glassLabels', note: 'Seven colas. Each one is poured exactly once.' },
+    { kind: 'bread', title: 'The Bread', listKey: 'breads', labelKey: 'sliceLabels', note: 'Four slices. Each one appears exactly once.' },
+  ];
+
+  function answered() {
+    if (!mine) return 0;
+    return mine.picks.cola.filter(Boolean).length + mine.picks.bread.filter(Boolean).length;
+  }
+
+  function renderStatus() {
+    status.replaceChildren();
+    if (!me || !state) return;
+    const total = state.total;
+    status.append(
+      el('span', { class: 'pill ' + (mine && mine.submitted ? 'pill-live' : 'pill-wait') }, [
+        el('span', { text: me.name }),
+        el('span', { class: 'num', text: mine && mine.submitted ? 'IN' : `${answered()}/${total}` }),
+      ]),
+    );
+  }
+
+  /* ---------------------------------------------------------------- joining */
+
+  function renderJoin(message) {
+    view = 'join';
+    app.replaceChildren(
+      el('div', { class: 'hero' }, [
+        el('h1', {}, [document.createTextNode('Blind'), el('em', { text: 'Tasting' })]),
+        el('p', { text: 'Seven colas, four breads, no labels. Put your name in and guess what is in front of you.' }),
+      ]),
+      el('div', { class: 'panel joincard' }, [
+        el('label', { class: 'label', for: 'name', text: 'Your name' }),
+        el('input', { type: 'text', id: 'name', maxlength: '24', autocomplete: 'given-name',
+          placeholder: 'e.g. Martin', enterkeyhint: 'go' }),
+        el('p', { class: 'err', id: 'joinerr', text: message || '' }),
+        el('button', { class: 'btn btn-primary', id: 'joinbtn', text: 'Join the tasting' }),
+      ]),
+    );
+
+    const input = document.getElementById('name');
+    const submit = async () => {
+      const name = input.value.trim();
+      if (!name) return;
+      const button = document.getElementById('joinbtn');
+      button.disabled = true;
+      try {
+        const res = await api('/api/join', { name });
+        me = { id: res.id, token: res.token, name: res.name };
+        store.set('cc-player', me);
+        await refreshMine();
+        render();
+      } catch (err) {
+        document.getElementById('joinerr').textContent = err.message;
+        button.disabled = false;
+      }
+    };
+    document.getElementById('joinbtn').addEventListener('click', submit);
+    input.addEventListener('keydown', (e) => { if (e.key === 'Enter') submit(); });
+    input.focus();
+  }
+
+  /* --------------------------------------------------------------- tasting */
+
+  function duplicates(kind) {
+    const seen = new Map();
+    mine.picks[kind].forEach((value, i) => {
+      if (!value) return;
+      if (!seen.has(value)) seen.set(value, []);
+      seen.get(value).push(i);
+    });
+    const dupes = new Set();
+    for (const [, indexes] of seen) {
+      if (indexes.length > 1) indexes.forEach((i) => dupes.add(i));
+    }
+    return dupes;
+  }
+
+  function markDuplicates() {
+    let clashes = 0;
+    for (const { kind } of KINDS) {
+      const dupes = duplicates(kind);
+      clashes += dupes.size;
+      document.querySelectorAll(`select[data-kind="${kind}"]`).forEach((node) => {
+        const isDupe = dupes.has(Number(node.dataset.index));
+        node.toggleAttribute('data-dup', isDupe);
+      });
+    }
+    const hint = document.getElementById('hint');
+    if (hint) {
+      hint.textContent = clashes
+        ? 'Heads up — you have used the same answer twice. Each one is poured only once.'
+        : '';
+    }
+  }
+
+  function renderTasting() {
+    view = 'tasting';
+    const nodes = [
+      el('div', { class: 'intro' }, [
+        el('h1', { text: 'Your card' }),
+        el('p', { text: 'Answers save as you go. You can change them until the host closes voting.' }),
+      ]),
+    ];
+
+    for (const group of KINDS) {
+      const list = state[group.listKey];
+      const labels = state[group.labelKey];
+      nodes.push(
+        el('div', { class: 'section-head' }, [
+          el('h2', { text: group.title }),
+          el('span', { class: 'label', text: `${list.length} to place` }),
+        ]),
+        el('p', { class: 'note', text: group.note }),
+      );
+
+      labels.forEach((label, index) => {
+        const isNow = state.current && state.current.kind === group.kind && state.current.index === index;
+        const select = el('select', {
+          'data-kind': group.kind,
+          'data-index': String(index),
+          'aria-label': `What is in ${label}?`,
+        }, [
+          el('option', { value: '', text: 'Choose…' }),
+          ...list.map((item) =>
+            el('option', { value: item.id, text: item.name })),
+        ]);
+        select.value = mine.picks[group.kind][index] ?? '';
+        if (!select.value) select.setAttribute('data-empty', '');
+        select.addEventListener('change', async () => {
+          const value = select.value || null;
+          mine.picks[group.kind][index] = value;
+          select.toggleAttribute('data-empty', !value);
+          markDuplicates();
+          renderStatus();
+          try {
+            await api('/api/pick', { id: me.id, token: me.token, kind: group.kind, index, value });
+          } catch (err) {
+            toast(err.message);
+          }
+        });
+
+        nodes.push(
+          el('div', { class: 'row', 'data-now': isNow || null }, [
+            el('div', { class: 'row-label', text: label }),
+            select,
+          ]),
+        );
+      });
+    }
+
+    nodes.push(el('p', { class: 'hint', id: 'hint' }));
+    app.replaceChildren(...nodes);
+
+    const bar = el('div', { class: 'submitbar' }, [
+      el('div', { class: 'submitbar-inner' }, [
+        el('button', {
+          class: 'btn btn-primary',
+          id: 'submit',
+          text: mine.submitted ? 'Update my card' : 'Hand in my card',
+          onclick: async () => {
+            try {
+              await api('/api/submit', { id: me.id, token: me.token });
+              mine.submitted = true;
+              toast('Card handed in. You can still change it until voting closes.');
+              renderStatus();
+              render();
+            } catch (err) {
+              toast(err.message);
+            }
+          },
+        }),
+      ]),
+    ]);
+    document.body.append(bar);
+    markDuplicates();
+  }
+
+  /* ------------------------------------------------------------ waiting/done */
+
+  function nameOf(kind, id) {
+    const list = kind === 'cola' ? state.colas : state.breads;
+    const found = list.find((item) => item.id === id);
+    return found ? found.name : '—';
+  }
+
+  function renderWaiting() {
+    view = 'waiting';
+    const submitted = mine && mine.submitted;
+    app.replaceChildren(
+      el('div', { class: 'waiting' }, [
+        el('div', { class: 'cap' }, [el('span', { text: submitted ? '✓' : '…' })]),
+        el('h2', { text: submitted ? 'Card is in' : 'Voting is closed' }),
+        el('p', { text: submitted
+          ? 'Nothing left to do but look at the television and regret your choices.'
+          : 'Your card did not make it in this round — watch the reveal on the television.' }),
+      ]),
+    );
+  }
+
+  function renderResult() {
+    view = 'result';
+    const score = mine.score;
+    if (!score) {
+      app.replaceChildren(
+        el('div', { class: 'waiting' }, [
+          el('div', { class: 'cap' }, [el('span', { text: '?' })]),
+          el('h2', { text: 'Eyes on the TV' }),
+          el('p', { text: 'Scores are coming out lowest first. Yours has not been read out yet.' }),
+        ]),
+      );
+      return;
+    }
+
+    const cells = [];
+    for (const group of KINDS) {
+      state[group.labelKey].forEach((label, index) => {
+        const guess = mine.picks[group.kind][index];
+        const truth = state.reveal.key ? state.reveal.key[group.kind][index] : null;
+        const ok = truth ? guess === truth : null;
+        cells.push(
+          el('div', { class: 'result-cell', 'data-ok': ok === true || null }, [
+            el('div', { class: 'label', text: label }),
+            el('b', { text: guess ? nameOf(group.kind, guess) : 'No answer' }),
+            truth && !ok ? el('small', { text: `was ${nameOf(group.kind, truth)}` }) : null,
+          ]),
+        );
+      });
+    }
+
+    app.replaceChildren(
+      el('div', { class: 'waiting', style: 'padding-bottom:1rem' }, [
+        el('div', { class: 'cap', style: '--cap-edge:var(--amber);--cap-face:var(--amber)' }, [
+          el('span', { class: 'num', text: String(score.total) }),
+        ]),
+        el('h2', { text: `${ordinal(score.rank)} place` }),
+        el('p', { class: 'num', text: `${score.total} of ${state.total} — ${score.cola}/7 colas, ${score.bread}/4 breads` }),
+      ]),
+      state.reveal.key ? el('div', { class: 'result-grid' }, cells) : null,
+    );
+  }
+
+  function ordinal(n) {
+    const teens = n % 100;
+    if (teens >= 11 && teens <= 13) return `${n}th`;
+    return `${n}${['th', 'st', 'nd', 'rd'][n % 10] ?? 'th'}`;
+  }
+
+  /* -------------------------------------------------------------- lifecycle */
+
+  async function refreshMine() {
+    if (!me) return;
+    try {
+      mine = await api(`/api/me?id=${encodeURIComponent(me.id)}&token=${encodeURIComponent(me.token)}`);
+    } catch (err) {
+      if (err.status === 404) {
+        store.clear('cc-player');
+        me = null;
+        mine = null;
+      }
+    }
+  }
+
+  function render() {
+    document.querySelector('.submitbar')?.remove();
+    renderStatus();
+    if (!state) return;
+    if (!me || !mine) return renderJoin();
+    if (state.phase === 'lobby' || state.phase === 'tasting') return renderTasting();
+    if (state.phase === 'locked') return renderWaiting();
+    return renderResult();
+  }
+
+  connect(async (next) => {
+    const wasPhase = state && state.phase;
+    state = next;
+    const revealMoved = state.reveal.index !== lastRevealIndex;
+    lastRevealIndex = state.reveal.index;
+
+    // Re-read our own card when the round changes or the reveal steps forward,
+    // since that is when our score can appear.
+    if (me && (wasPhase !== state.phase || revealMoved || !mine)) await refreshMine();
+
+    // Keep the dropdowns the guest is mid-way through instead of rebuilding.
+    if (view === 'tasting' && state.phase === 'tasting' && wasPhase === 'tasting') {
+      document.querySelectorAll('.row').forEach((row) => {
+        const select = row.querySelector('select');
+        const isNow = state.current
+          && state.current.kind === select.dataset.kind
+          && Number(select.dataset.index) === state.current.index;
+        row.toggleAttribute('data-now', isNow);
+      });
+      renderStatus();
+      return;
+    }
+    render();
+  });
+})();
+</script>
+</body>
+</html>

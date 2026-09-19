@@ -12,6 +12,9 @@ dist
 dist-ssr
 *.local
 
+# Saved state from a running tasting game
+game/data.json
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

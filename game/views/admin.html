@@ -1,0 +1,431 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tasting Control</title>
+<link rel="icon" href="/favicon.svg">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="/app.css">
+<style>
+  body { padding: 0 0 3rem; }
+
+  .wrap { max-width: 78rem; margin: 0 auto; padding: 0 1.25rem; }
+
+  .topbar { border-bottom: 1px solid var(--line); margin-bottom: 1.5rem; }
+  .topbar-inner {
+    max-width: 78rem; margin: 0 auto; padding: 1rem 1.25rem;
+    display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap;
+  }
+  .mark { font-family: var(--display); font-size: 1.3rem; letter-spacing: 0.03em; }
+  .mark span { color: var(--amber); }
+  .links { display: flex; gap: 1.2rem; align-items: center; flex-wrap: wrap; }
+  .links a { color: var(--amber); text-decoration: none; font-weight: 600; font-size: 0.9rem; }
+  .links a:hover { text-decoration: underline; }
+
+  .cols { display: grid; grid-template-columns: minmax(0, 20rem) minmax(0, 1fr); gap: 1.5rem; align-items: start; }
+  @media (max-width: 62rem) { .cols { grid-template-columns: 1fr; } }
+
+  .card { padding: 1.1rem; margin-bottom: 1.25rem; }
+  .card h2 { font-size: 1.15rem; margin-bottom: 0.15rem; }
+  .card .sub { color: var(--muted); font-size: 0.85rem; margin: 0 0 0.9rem; }
+
+  .runorder { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.4rem; }
+  .step {
+    display: grid; grid-template-columns: 1.6rem 1fr auto; gap: 0.7rem; align-items: center;
+    padding: 0.55rem 0.6rem; border: 1px solid var(--line); border-radius: 3px; background: var(--surface-2);
+  }
+  .step[data-on] { border-color: var(--amber); }
+  .step .n { font-family: var(--display); color: var(--muted); text-align: center; }
+  .step[data-on] .n { color: var(--amber); }
+  .step .what { font-weight: 600; font-size: 0.92rem; }
+  .step .what small { display: block; font-weight: 400; color: var(--muted); font-size: 0.78rem; }
+  .step .btn { padding: 0.35rem 0.7rem; font-size: 0.82rem; }
+
+  .stepper { display: flex; align-items: center; gap: 0.6rem; }
+  .stepper .current {
+    flex: 1; text-align: center; font-family: var(--display); font-size: 1.6rem;
+    border: 1px solid var(--line); border-radius: 3px; padding: 0.5rem; background: var(--surface-2);
+  }
+
+  .keygrid { display: grid; grid-template-columns: 4.4rem 1fr; gap: 0.45rem 0.7rem; align-items: center; }
+  .keygrid .k { font-family: var(--display); font-size: 0.95rem; letter-spacing: 0.03em; }
+  .keygrid select { padding-block: 0.45rem; font-size: 0.9rem; }
+  .keygrid select[data-dup] { border-color: var(--cola); }
+
+  .rowbtns { display: flex; gap: 0.6rem; margin-top: 0.9rem; flex-wrap: wrap; }
+  .rowbtns .btn { flex: 1; min-width: 7rem; }
+
+  .warn { color: var(--cola); font-size: 0.85rem; margin: 0.7rem 0 0; }
+  .ok { color: var(--good); font-size: 0.85rem; margin: 0.7rem 0 0; }
+
+  .tablewrap { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; font-size: 0.82rem; }
+  th, td { text-align: left; padding: 0.4rem 0.45rem; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  thead th { font-size: 0.66rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+  tbody th { font-weight: 600; font-size: 0.9rem; position: sticky; left: 0; background: var(--surface); }
+  td.pick { color: var(--muted); }
+  td.pick[data-ok] { color: var(--good); }
+  td.pick[data-bad] { color: var(--bad); }
+  td.score { font-family: var(--display); color: var(--amber); font-size: 1rem; }
+
+  .pingate { max-width: 22rem; margin: 5rem auto; padding: 1.5rem; }
+  .pingate h1 { font-size: 1.8rem; margin-bottom: 0.3rem; }
+  .pingate p { color: var(--muted); font-size: 0.9rem; margin: 0 0 1rem; }
+  .pingate .btn { width: 100%; margin-top: 0.8rem; }
+  .err { color: var(--cola); min-height: 1.2rem; font-size: 0.87rem; margin: 0.6rem 0 0; }
+
+  .revealbar { display: flex; align-items: center; gap: 0.8rem; flex-wrap: wrap; }
+  .revealbar .btn-primary { flex: 1; min-width: 12rem; padding-block: 0.9rem; font-size: 1.05rem; }
+  .revealnote { font-family: var(--display); font-size: 1.3rem; }
+
+  .qrmini { background: var(--cream); padding: 0.6rem; border-radius: 3px; width: 9.5rem; }
+  .qrmini img { display: block; width: 100%; }
+  .joinline { font-family: var(--display); font-size: 1.05rem; margin-top: 0.5rem; word-break: break-all; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="/app.js"></script>
+<script>
+(() => {
+  const root = document.getElementById('root');
+  let pin = store.get('cc-pin');
+  let data = null;
+
+  const call = (path, body) => api(path, body ?? {}, { 'x-pin': pin });
+
+  const ordinal = (n) => {
+    const teens = n % 100;
+    if (teens >= 11 && teens <= 13) return `${n}th`;
+    return `${n}${['th', 'st', 'nd', 'rd'][n % 10] ?? 'th'}`;
+  };
+
+  /* -------------------------------------------------------------- pin gate */
+
+  function renderGate(message) {
+    root.replaceChildren(
+      el('div', { class: 'panel pingate' }, [
+        el('h1', { text: 'Control desk' }),
+        el('p', { text: 'Enter the four-digit PIN printed in the terminal where you started the server.' }),
+        el('input', { type: 'tel', id: 'pin', inputmode: 'numeric', maxlength: '8',
+          placeholder: '····', autocomplete: 'off' }),
+        el('p', { class: 'err', id: 'pinerr', text: message || '' }),
+        el('button', { class: 'btn btn-primary', id: 'go', text: 'Unlock' }),
+      ]),
+    );
+    const input = document.getElementById('pin');
+    const go = async () => {
+      pin = input.value.trim();
+      try {
+        data = await call('/api/admin/state');
+        store.set('cc-pin', pin);
+        render();
+        connect(() => refresh());
+      } catch (err) {
+        document.getElementById('pinerr').textContent = err.message;
+      }
+    };
+    document.getElementById('go').addEventListener('click', go);
+    input.addEventListener('keydown', (e) => { if (e.key === 'Enter') go(); });
+    input.focus();
+  }
+
+  async function refresh() {
+    try {
+      data = await call('/api/admin/state');
+      render();
+    } catch (err) {
+      if (err.status === 401) {
+        store.clear('cc-pin');
+        renderGate('That PIN stopped working. Enter it again.');
+      }
+    }
+  }
+
+  async function act(path, body, okMessage) {
+    try {
+      data = await call(path, body);
+      render();
+      if (okMessage) toast(okMessage);
+    } catch (err) {
+      toast(err.message);
+    }
+  }
+
+  /* ------------------------------------------------------------ run of show */
+
+  const STEPS = [
+    { phase: 'lobby', what: 'Guests join', sub: 'TV shows the QR code' },
+    { phase: 'tasting', what: 'Tasting', sub: 'Call out each glass and slice' },
+    { phase: 'locked', what: 'Close voting', sub: 'No more changes to any card' },
+    { phase: 'reveal', what: 'Reveal', sub: 'Lowest score first, one at a time' },
+    { phase: 'done', what: 'Final table', sub: 'Everything on screen at once' },
+  ];
+
+  function runOrder() {
+    return el('ul', { class: 'runorder' }, STEPS.map((step, i) =>
+      el('li', { class: 'step', 'data-on': data.phase === step.phase || null }, [
+        el('div', { class: 'n', text: String(i + 1) }),
+        el('div', { class: 'what' }, [
+          document.createTextNode(step.what),
+          el('small', { text: step.sub }),
+        ]),
+        data.phase === step.phase
+          ? el('span', { class: 'pill pill-live', text: 'LIVE' })
+          : el('button', {
+              class: 'btn',
+              text: 'Go',
+              onclick: () => act('/api/admin/phase', { phase: step.phase }),
+            }),
+      ])));
+  }
+
+  /* ------------------------------------------------------------- answer key */
+
+  function keyEditor() {
+    const groups = [
+      { kind: 'cola', list: data.colas, labels: data.glassLabels },
+      { kind: 'bread', list: data.breads, labels: data.sliceLabels },
+    ];
+
+    const nodes = [];
+    for (const group of groups) {
+      group.labels.forEach((label, index) => {
+        const select = el('select', { 'aria-label': `What is actually in ${label}?` }, [
+          el('option', { value: '', text: 'Not set' }),
+          ...group.list.map((item) => el('option', { value: item.id, text: item.name })),
+        ]);
+        select.value = data.key[group.kind][index] ?? '';
+        select.addEventListener('change', () => {
+          const next = { cola: [...data.key.cola], bread: [...data.key.bread] };
+          next[group.kind][index] = select.value || null;
+          act('/api/admin/key', next);
+        });
+        nodes.push(el('div', { class: 'k', text: label }), select);
+      });
+    }
+
+    const clashes = [];
+    for (const group of groups) {
+      const seen = new Set();
+      data.key[group.kind].forEach((value) => {
+        if (value && seen.has(value)) clashes.push(value);
+        if (value) seen.add(value);
+      });
+    }
+
+    return el('div', { class: 'panel card' }, [
+      el('h2', { text: 'Answer key' }),
+      el('p', { class: 'sub', text: 'What is really in each glass and on each plate. Only you can see this.' }),
+      el('div', { class: 'keygrid' }, nodes),
+      el('div', { class: 'rowbtns' }, [
+        el('button', {
+          class: 'btn',
+          text: 'Shuffle pour order',
+          onclick: () => act('/api/admin/shuffle', {}, 'Shuffled — pour to match the list above.'),
+        }),
+      ]),
+      clashes.length
+        ? el('p', { class: 'warn', text: 'The same answer is used twice — each one should appear exactly once.' })
+        : data.keyIsSet
+          ? el('p', { class: 'ok', text: 'Key complete. You can run the reveal.' })
+          : el('p', { class: 'warn', text: 'Fill in every glass and slice before the reveal.' }),
+    ]);
+  }
+
+  /* ---------------------------------------------------------------- tasting */
+
+  function nowStepper() {
+    const kinds = [
+      { kind: 'cola', labels: data.glassLabels },
+      { kind: 'bread', labels: data.sliceLabels },
+    ];
+    const flat = kinds.flatMap((group) =>
+      group.labels.map((label, index) => ({ kind: group.kind, index, label })));
+    const position = flat.findIndex(
+      (item) => item.kind === data.current.kind && item.index === data.current.index);
+
+    const move = (delta) => {
+      const next = flat[Math.max(0, Math.min(flat.length - 1, position + delta))];
+      act('/api/admin/current', { kind: next.kind, index: next.index });
+    };
+
+    return el('div', { class: 'panel card' }, [
+      el('h2', { text: 'On the TV now' }),
+      el('p', { class: 'sub', text: 'Move this along as you pour. Everyone sees it change.' }),
+      el('div', { class: 'stepper' }, [
+        el('button', { class: 'btn', text: '‹', 'aria-label': 'Previous',
+          disabled: position <= 0 || null, onclick: () => move(-1) }),
+        el('div', { class: 'current', text: flat[position] ? flat[position].label : '—' }),
+        el('button', { class: 'btn', text: '›', 'aria-label': 'Next',
+          disabled: position >= flat.length - 1 || null, onclick: () => move(1) }),
+      ]),
+    ]);
+  }
+
+  /* ----------------------------------------------------------- reveal panel */
+
+  function revealPanel() {
+    const { index, count } = data.reveal;
+    const atEnd = index >= count - 1;
+    return el('div', { class: 'panel card' }, [
+      el('h2', { text: 'Reveal' }),
+      el('p', { class: 'sub', text: 'Lowest score first. Give it a beat between each one.' }),
+      el('div', { class: 'revealbar' }, [
+        el('button', {
+          class: 'btn btn-primary',
+          text: index < 0 ? 'Reveal the first score' : atEnd ? 'All revealed' : 'Reveal next',
+          disabled: atEnd || null,
+          onclick: () => act('/api/admin/reveal', { step: 'next' }),
+        }),
+        el('button', {
+          class: 'btn',
+          text: 'Back',
+          disabled: index < 0 || null,
+          onclick: () => act('/api/admin/reveal', { step: 'back' }),
+        }),
+      ]),
+      el('p', { class: 'revealnote num', text: `${Math.max(0, index + 1)} of ${count} revealed` }),
+      atEnd && count
+        ? el('button', {
+            class: 'btn', style: 'width:100%',
+            text: 'Show the final table',
+            onclick: () => act('/api/admin/phase', { phase: 'done' }),
+          })
+        : null,
+    ]);
+  }
+
+  /* ------------------------------------------------------------- live cards */
+
+  function shortOf(kind, id) {
+    const list = kind === 'cola' ? data.colas : data.breads;
+    const found = list.find((item) => item.id === id);
+    return found ? (found.short || found.name) : '';
+  }
+
+  function cardsTable() {
+    const columns = [
+      ...data.glassLabels.map((label, index) => ({ kind: 'cola', index, label: label.replace('Glass ', 'G') })),
+      ...data.sliceLabels.map((label, index) => ({ kind: 'bread', index, label: label.replace('Slice ', '') })),
+    ];
+    const scoreById = new Map((data.scores || []).map((row) => [row.id, row]));
+
+    const head = el('tr', {}, [
+      el('th', { text: 'Player' }),
+      el('th', { text: 'In' }),
+      ...columns.map((c) => el('th', { text: c.label })),
+      el('th', { text: 'Score' }),
+    ]);
+
+    const body = data.picks.map((player) => {
+      const score = scoreById.get(player.id);
+      return el('tr', {}, [
+        el('th', { scope: 'row', text: player.name }),
+        el('td', {}, [
+          el('span', { class: 'pill ' + (player.submitted ? 'pill-live' : 'pill-wait'),
+            text: player.submitted ? 'in' : '…' }),
+        ]),
+        ...columns.map((c) => {
+          const guess = player.picks[c.kind][c.index];
+          const truth = data.key[c.kind][c.index];
+          const ok = truth && guess ? guess === truth : null;
+          return el('td', {
+            class: 'pick',
+            'data-ok': ok === true || null,
+            'data-bad': ok === false || null,
+            text: guess ? shortOf(c.kind, guess) : '·',
+          });
+        }),
+        el('td', { class: 'score num', text: score ? String(score.total) : '—' }),
+      ]);
+    });
+
+    return el('div', { class: 'panel card' }, [
+      el('h2', { text: 'Cards' }),
+      el('p', { class: 'sub', text: data.picks.length
+        ? 'Everything your guests have keyed in, live. Colour appears once the key is set.'
+        : 'No guests yet — they appear here the moment they join.' }),
+      data.picks.length
+        ? el('div', { class: 'tablewrap' }, [
+            el('table', {}, [el('thead', {}, [head]), el('tbody', {}, body)]),
+          ])
+        : null,
+    ]);
+  }
+
+  function joinCard() {
+    return el('div', { class: 'panel card' }, [
+      el('h2', { text: 'Join link' }),
+      el('p', { class: 'sub', text: 'Same code the TV is showing.' }),
+      el('div', { class: 'qrmini' }, [el('img', { src: '/qr.svg', alt: 'Join QR code' })]),
+      el('div', { class: 'joinline', text: data.joinUrl.replace(/^https?:\/\//, '') }),
+    ]);
+  }
+
+  /* ------------------------------------------------------------------ shell */
+
+  function render() {
+    const inCount = data.players.filter((p) => p.submitted).length;
+
+    root.replaceChildren(
+      el('header', { class: 'topbar' }, [
+        el('div', { class: 'topbar-inner' }, [
+          el('div', { class: 'mark' }, [
+            document.createTextNode('CONTROL '),
+            el('span', { text: 'DESK' }),
+          ]),
+          el('div', { class: 'links' }, [
+            el('span', { class: 'label num', text: `${data.players.length} joined · ${inCount} cards in` }),
+            el('a', { href: '/tv', target: '_blank', rel: 'noreferrer', text: 'Open TV view ↗' }),
+          ]),
+        ]),
+      ]),
+      el('div', { class: 'wrap' }, [
+        el('div', { class: 'cols' }, [
+          el('div', {}, [
+            el('div', { class: 'panel card' }, [
+              el('h2', { text: 'Run of show' }),
+              el('p', { class: 'sub', text: 'Each step changes what the TV shows.' }),
+              runOrder(),
+            ]),
+            data.phase === 'tasting' ? nowStepper() : null,
+            data.phase === 'reveal' ? revealPanel() : null,
+            joinCard(),
+            el('div', { class: 'panel card' }, [
+              el('h2', { text: 'Start over' }),
+              el('p', { class: 'sub', text: 'Clears every card. Keep the guests to run a second round without making them rejoin.' }),
+              el('div', { class: 'rowbtns' }, [
+                el('button', { class: 'btn', text: 'New round',
+                  onclick: () => confirm('Clear all answers and start a new round?')
+                    && act('/api/admin/reset', { keepPlayers: true }, 'New round ready.') }),
+                el('button', { class: 'btn btn-danger', text: 'Clear everything',
+                  onclick: () => confirm('Remove every guest and all answers?')
+                    && act('/api/admin/reset', {}, 'Cleared.') }),
+              ]),
+            ]),
+          ]),
+          el('div', {}, [keyEditor(), cardsTable()]),
+        ]),
+      ]),
+    );
+  }
+
+  if (pin) {
+    call('/api/admin/state')
+      .then((state) => {
+        data = state;
+        render();
+        connect(() => refresh());
+      })
+      .catch(() => renderGate());
+  } else {
+    renderGate();
+  }
+})();
+</script>
+</body>
+</html>

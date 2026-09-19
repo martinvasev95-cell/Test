@@ -219,7 +219,7 @@
       el('div', { class: 'lobby' }, [
         el('div', {}, [
           el('h1', {}, [document.createTextNode('Blind'), el('em', { text: 'Tasting' })]),
-          el('p', { class: 'blurb', text: 'Seven colas and four breads, all unlabelled. Scan the code, put your name in, and guess your way through.' }),
+          el('p', { class: 'blurb', text: `${state.colas.length} colas and ${state.breads.length} breads, all unlabelled. Scan the code, put your name in, and guess your way through.` }),
           el('div', { class: 'roster' }, state.players.map((p) =>
             el('div', { class: 'who', 'data-in': p.submitted || null, text: p.name }))),
           joined ? null : el('p', { class: 'blurb', text: 'Nobody has joined yet.' }),

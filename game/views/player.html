@@ -167,8 +167,8 @@
   let view = null;
 
   const KINDS = [
-    { kind: 'cola', title: 'The Glasses', listKey: 'colas', labelKey: 'glassLabels', note: 'Seven colas. Each one is poured exactly once.' },
-    { kind: 'bread', title: 'The Bread', listKey: 'breads', labelKey: 'sliceLabels', note: 'Four slices. Each one appears exactly once.' },
+    { kind: 'cola', title: 'The Glasses', listKey: 'colas', labelKey: 'glassLabels', note: 'Each cola is poured exactly once.' },
+    { kind: 'bread', title: 'The Bread', listKey: 'breads', labelKey: 'sliceLabels', note: 'Each bread is served exactly once.' },
   ];
 
   function answered() {
@@ -195,7 +195,7 @@
     app.replaceChildren(
       el('div', { class: 'hero' }, [
         el('h1', {}, [document.createTextNode('Blind'), el('em', { text: 'Tasting' })]),
-        el('p', { text: 'Seven colas, four breads, no labels. Put your name in and guess what is in front of you.' }),
+        el('p', { text: `${state.colas.length} colas, ${state.breads.length} breads, no labels. Put your name in and guess what is in front of you.` }),
       ]),
       el('div', { class: 'panel joincard' }, [
         el('label', { class: 'label', for: 'name', text: 'Your name' }),
@@ -402,7 +402,7 @@
           el('span', { class: 'num', text: String(score.total) }),
         ]),
         el('h2', { text: `${ordinal(score.rank)} place` }),
-        el('p', { class: 'num', text: `${score.total} of ${state.total} — ${score.cola}/7 colas, ${score.bread}/4 breads` }),
+        el('p', { class: 'num', text: `${score.total} of ${state.total} — ${score.cola}/${state.colas.length} colas, ${score.bread}/${state.breads.length} breads` }),
       ]),
       state.reveal.key ? el('div', { class: 'result-grid' }, cells) : null,
     );

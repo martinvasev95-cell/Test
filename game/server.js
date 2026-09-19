@@ -25,9 +25,10 @@ const COLAS = [
 
 const BREADS = [
   { id: 'gf', name: 'Gluten-free', short: 'GF' },
-  { id: 'wf', name: 'Wheat flour', short: 'Wheat' },
+  { id: 'wf', name: 'Whole Foods', short: 'WF' },
   { id: 'farmers', name: "Farmers' market", short: 'Market' },
   { id: 'homemade', name: 'Homemade', short: 'Home' },
+  { id: 'jalapeno', name: 'Jalapeño cheese sourdough', short: 'Jalapeño' },
 ];
 
 const GLASS_LABELS = COLAS.map((_, i) => `Glass ${i + 1}`);

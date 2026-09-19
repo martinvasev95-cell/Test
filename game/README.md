@@ -1,6 +1,6 @@
 # Cola & Crumb
 
-A blind tasting game for a dinner party: seven colas and four breads, guessed
+A blind tasting game for a dinner party: seven colas and five breads, guessed
 from dropdowns on your guests' phones, with a lowest-score-first reveal on
 the television.
 
@@ -46,7 +46,7 @@ The admin page has a **run of show** — five steps, in order:
 
 1. **Guests join.** The TV shows the QR code and names appear as people join.
 2. **Tasting.** Use the `‹ ›` stepper to move through Glass 1–7 and Slice
-   A–D. The TV shows the current one in large type, and it is highlighted on
+   A–E. The TV shows the current one in large type, and it is highlighted on
    every guest's phone. Guests can answer in any order; answers save as they
    are picked.
 3. **Close voting.** Locks every card. Anyone who filled anything in but
@@ -58,7 +58,8 @@ The admin page has a **run of show** — five steps, in order:
 
 ### The answer key
 
-Set it before the reveal — the reveal is blocked until all eleven are filled.
+Set it before the reveal — the reveal is blocked until every glass and slice
+is filled in.
 
 *Shuffle pour order* makes a random assignment for you; pour to match it, or
 pour first and then record what you did. Only the admin page ever shows it,
@@ -76,7 +77,7 @@ and the server does not release it to anyone until the reveal starts.
 
 ## Changing what is being tasted
 
-The seven colas and four breads are two arrays at the top of
+The colas and breads are two arrays at the top of
 `game/server.js`. Rename them to whatever you are actually serving — `name`
 is what guests see, `short` is the abbreviation in the admin table, and `id`
 is only stored internally.

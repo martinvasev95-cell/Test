@@ -122,7 +122,13 @@
   .scoreline .cap { width: 18vmin; --cap-edge: var(--amber); --cap-face: var(--amber); }
   .scoreline .cap span { font-size: 9vmin; }
 
-  .card-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 0.8vmin; margin-top: 1vmin; }
+  /* Self-sizing so the row stays full whatever is being tasted tonight. */
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr));
+    gap: 0.8vmin;
+    margin-top: 1vmin;
+  }
   .cell {
     background: var(--surface);
     border: 1px solid var(--line);

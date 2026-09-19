@@ -21,6 +21,7 @@ const COLAS = [
   { id: 'diet-pepsi', name: 'Diet Pepsi', short: 'D.Pep' },
   { id: 'cherry-coke', name: 'Cherry Coke', short: 'Cherry' },
   { id: 'mexican-coke', name: 'Mexican Coke', short: 'Mex' },
+  { id: 'olipop', name: 'Olipop', short: 'Olipop' },
 ];
 
 const BREADS = [

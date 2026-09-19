@@ -1,6 +1,6 @@
 # Cola & Crumb
 
-A blind tasting game for a dinner party: seven colas and five breads, guessed
+A blind tasting game for a dinner party: eight colas and five breads, guessed
 from dropdowns on your guests' phones, with a lowest-score-first reveal on
 the television.
 
@@ -45,7 +45,7 @@ four-digit PIN printed at startup).
 The admin page has a **run of show** — five steps, in order:
 
 1. **Guests join.** The TV shows the QR code and names appear as people join.
-2. **Tasting.** Use the `‹ ›` stepper to move through Glass 1–7 and Slice
+2. **Tasting.** Use the `‹ ›` stepper to move through Glass 1–8 and Slice
    A–E. The TV shows the current one in large type, and it is highlighted on
    every guest's phone. Guests can answer in any order; answers save as they
    are picked.

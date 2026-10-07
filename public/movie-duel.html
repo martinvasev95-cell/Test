@@ -1,0 +1,282 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Watchlist Duel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;800;900&family=Figtree:wght@400;500;700&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Layout: one centered column — a "screening room" with two posters facing off, results as a ranked ledger. Single dark theme by choice. */
+:root {
+  --bg: #12141a;
+  --panel: #1c2029;
+  --line: #2c3240;
+  --fg: #eef0f4;
+  --muted: #8e97a8;
+  --win: #3ddc84;
+  --gold: #f5b83d;
+  --ring: #6aa8ff;
+  --display: "Big Shoulders Display", "Arial Narrow", Impact, sans-serif;
+  --body: "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+[hidden] { display: none !important; }
+html, body { height: 100%; }
+body {
+  background: var(--bg); color: var(--fg); font-family: var(--body); font-size: 15px; line-height: 1.5;
+  padding-inline: 16px; padding-block: 20px 40px;
+}
+.wrap { max-width: 760px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+header { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+h1 { font-family: var(--display); font-weight: 900; font-size: 2.4rem; line-height: 1; margin: 0; letter-spacing: .01em; text-transform: uppercase; }
+h1 span { color: var(--win); }
+.sub { color: var(--muted); margin: 0; }
+h2 { font-family: var(--display); font-weight: 800; font-size: 1.5rem; text-transform: uppercase; letter-spacing: .03em; margin: 0; text-wrap: balance; }
+button { font: inherit; cursor: pointer; }
+button:focus-visible, textarea:focus-visible, input:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+.btn { background: var(--panel); color: var(--fg); border: 1px solid var(--line); border-radius: 8px; padding: 9px 14px; font-weight: 500; }
+.btn:hover { border-color: var(--muted); }
+.btn.primary { background: var(--win); color: #0b1a10; border-color: var(--win); font-weight: 700; }
+.btn:disabled { opacity: .4; cursor: default; }
+.row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.label { font-size: .75rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+
+/* Setup */
+textarea { width: 100%; box-sizing: border-box; min-height: 300px; background: var(--panel); color: var(--fg); border: 1px solid var(--line); border-radius: 8px; padding: 12px; font: 14px/1.6 var(--body); resize: vertical; }
+
+/* Duel */
+.progress { display: flex; flex-direction: column; gap: 6px; }
+.bar { height: 6px; background: var(--panel); border-radius: 3px; overflow: hidden; }
+.bar i { display: block; height: 100%; background: var(--win); width: 0; transition: width .25s; }
+.meta { display: flex; justify-content: space-between; font-family: var(--mono); font-size: .8rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.question { text-align: center; font-family: var(--display); font-weight: 800; font-size: 1.6rem; text-transform: uppercase; letter-spacing: .04em; margin: 0; }
+.arena { display: grid; grid-template-columns: 1fr auto 1fr; gap: 14px; align-items: center; }
+.vs { font-family: var(--display); font-weight: 900; color: var(--muted); font-size: 1.4rem; }
+.poster {
+  aspect-ratio: 2 / 3; max-width: 100%; width: 100%; border-radius: 6px; border: 2px solid transparent;
+  display: flex; flex-direction: column; justify-content: flex-end; padding: 14px; box-sizing: border-box;
+  text-align: left; color: #fff; position: relative; overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0,0,0,.45); transition: transform .15s, border-color .15s;
+}
+.poster::after { content: ""; position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,.75), rgba(0,0,0,0) 60%); }
+.poster b { position: relative; z-index: 1; font-family: var(--display); font-weight: 900; font-size: clamp(1.3rem, 5vw, 2.2rem); line-height: .95; text-transform: uppercase; overflow-wrap: anywhere; }
+.poster small { position: relative; z-index: 1; font-family: var(--mono); font-size: .7rem; opacity: .75; margin-top: 8px; }
+.poster:hover { transform: translateY(-3px); border-color: var(--win); }
+.poster.picked { border-color: var(--win); transform: scale(1.03); }
+.controls { justify-content: center; }
+.hint { text-align: center; color: var(--muted); font-size: .8rem; margin: 0; }
+
+/* Results */
+.scale { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 14px; display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.scale label { display: flex; flex-direction: column; gap: 4px; }
+.scale output { font-family: var(--mono); color: var(--gold); }
+input[type=range] { width: 100%; accent-color: var(--win); }
+ol.ledger { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line); }
+ol.ledger li { display: grid; grid-template-columns: 2.2em 1fr auto auto; gap: 12px; align-items: center; padding: 10px 2px; border-bottom: 1px solid var(--line); }
+.rank { font-family: var(--mono); color: var(--muted); font-variant-numeric: tabular-nums; }
+.title { font-weight: 700; min-width: 0; overflow-wrap: anywhere; }
+.stars { color: var(--win); font-size: 1.05rem; letter-spacing: .05em; white-space: nowrap; }
+.ten { font-family: var(--mono); color: var(--gold); font-variant-numeric: tabular-nums; min-width: 3.6em; text-align: right; }
+.toast { color: var(--win); font-size: .85rem; }
+@media (max-width: 480px) {
+  .arena { grid-template-columns: 1fr 1fr; }
+  .vs { display: none; }
+  .scale { grid-template-columns: 1fr; }
+  ol.ledger li { grid-template-columns: 1.8em 1fr auto; }
+  .ten { grid-column: 3; }
+  .stars { grid-column: 2 / 4; grid-row: 2; font-size: .95rem; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Watchlist <span>Duel</span></h1>
+    <p class="sub">Pick the better film, again and again. Get Letterboxd stars at the end.</p>
+  </header>
+
+  <section id="setup" hidden>
+    <div class="row" style="justify-content:space-between">
+      <h2>Your films</h2>
+      <span class="label" id="count"></span>
+    </div>
+    <p class="sub">One title per line. Delete anything you haven't watched yet, or add more.</p>
+    <textarea id="list" spellcheck="false"></textarea>
+    <div class="row" style="margin-top:12px">
+      <button class="btn primary" id="start">Start duel</button>
+      <button class="btn" id="resetList">Restore the 18 from your watchlist</button>
+    </div>
+  </section>
+
+  <section id="duel" hidden style="display:flex;flex-direction:column;gap:18px">
+    <div class="progress">
+      <div class="bar"><i id="barFill"></i></div>
+      <div class="meta"><span id="matchNo"></span><span id="leftNo"></span></div>
+    </div>
+    <p class="question">Which one is better?</p>
+    <div class="arena">
+      <button class="poster" id="pickA"><b></b><small>← arrow</small></button>
+      <span class="vs">VS</span>
+      <button class="poster" id="pickB"><b></b><small>arrow →</small></button>
+    </div>
+    <div class="row controls">
+      <button class="btn" id="undo">Undo</button>
+      <button class="btn" id="toss">Too close, flip a coin</button>
+      <button class="btn" id="edit">Edit list</button>
+    </div>
+    <p class="hint">Keyboard: ← / → to pick, Backspace to undo.</p>
+  </section>
+
+  <section id="results" hidden style="display:flex;flex-direction:column;gap:16px">
+    <div class="row" style="justify-content:space-between">
+      <h2>Your ranking</h2>
+      <span class="label" id="doneMeta"></span>
+    </div>
+    <div class="scale">
+      <label for="top"><span class="label">Your #1 gets</span><input type="range" id="top" min="1" max="5" step="0.5" value="5"><output id="topOut"></output></label>
+      <label for="bottom"><span class="label">Your last place gets</span><input type="range" id="bottom" min="0.5" max="5" step="0.5" value="1.5"><output id="bottomOut"></output></label>
+    </div>
+    <ol class="ledger" id="ledger"></ol>
+    <div class="row">
+      <button class="btn primary" id="copy">Copy as text</button>
+      <button class="btn" id="undoLast">Undo last pick</button>
+      <button class="btn" id="again">Start over</button>
+      <span class="toast" id="toast"></span>
+    </div>
+    <textarea id="copyFallback" hidden readonly style="min-height:160px"></textarea>
+  </section>
+</div>
+
+<script>
+const DEFAULT = ["The Debut","The Man I Love","Cameron Winter at Carnegie Hall","Minotaur","Club Kid","Bitter Christmas","La Bola Negra","You Can See Everything","Artificial","Fjord","The Dreamed Adventure","Naza","Behemoth!","All of a Sudden","La Gradiva","Tender Loving Care","A Long Winter","Godzilla Minus Zero"];
+const KEY = "watchlist-duel-v1";
+let state = { films: null, answers: [], top: 5, bottom: 1.5 };
+
+function load() { try { const s = JSON.parse(localStorage.getItem(KEY)); if (s && Array.isArray(s.answers)) state = Object.assign(state, s); } catch (e) {} }
+function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
+const $ = id => document.getElementById(id);
+
+// Binary insertion sort replayed from the recorded picks. Picks store the winner's title,
+// so undo is just dropping the last pick and replaying.
+function replay(films, answers) {
+  const sorted = [films[0]];
+  let k = 0;
+  for (let i = 1; i < films.length; i++) {
+    const x = films[i];
+    let lo = 0, hi = sorted.length;
+    while (lo < hi) {
+      const mid = (lo + hi) >> 1;
+      if (k >= answers.length) return { pending: [x, sorted[mid]], k, i };
+      if (answers[k++] === x) hi = mid; else lo = mid + 1;
+    }
+    sorted.splice(lo, 0, x);
+  }
+  return { sorted, k };
+}
+function estimate(n) { let t = 0; for (let i = 1; i < n; i++) t += Math.ceil(Math.log2(i + 1)); return t; }
+
+function hue(s) { let h = 0; for (const c of s) h = (h * 31 + c.charCodeAt(0)) >>> 0; return h; }
+function paint(el, title) {
+  const h = hue(title) % 360, h2 = (h + 40 + (hue(title + "x") % 80)) % 360;
+  el.style.background = `radial-gradient(circle at 30% 20%, hsl(${h2} 70% 55% / .9), transparent 55%), linear-gradient(160deg, hsl(${h} 55% 32%), hsl(${(h + 200) % 360} 45% 12%))`;
+  el.querySelector("b").textContent = title;
+  el.dataset.title = title;
+  el.setAttribute("aria-label", "Pick " + title);
+}
+
+function show(id) { for (const s of ["setup", "duel", "results"]) $(s).hidden = s !== id; }
+
+function render() {
+  if (!state.films) {
+    show("setup");
+    if (!$("list").value) $("list").value = DEFAULT.join("\n");
+    updateCount();
+    return;
+  }
+  const r = replay(state.films, state.answers);
+  if (r.pending) {
+    show("duel");
+    // Alternate sides so neither film always sits on the left.
+    const [x, y] = r.pending;
+    const flip = (r.k + hue(x)) % 2 === 1;
+    paint($("pickA"), flip ? y : x);
+    paint($("pickB"), flip ? x : y);
+    const est = Math.max(estimate(state.films.length), r.k + 1);
+    $("barFill").style.width = (100 * r.k / est) + "%";
+    $("matchNo").textContent = `Match ${r.k + 1} of ~${est}`;
+    $("leftNo").textContent = `${state.films.length - r.i} film${state.films.length - r.i === 1 ? "" : "s"} left to place`;
+    $("undo").disabled = state.answers.length === 0;
+    for (const p of [$("pickA"), $("pickB")]) p.classList.remove("picked");
+  } else {
+    show("results");
+    renderResults(r.sorted);
+  }
+}
+
+function scoreFor(rank, n) {
+  const top = state.top, bottom = Math.min(state.bottom, state.top);
+  const exact = n === 1 ? top : top - (top - bottom) * rank / (n - 1);
+  const stars = Math.round(exact * 2) / 2;
+  return { stars, ten: (exact * 2).toFixed(1) };
+}
+function starGlyphs(s) { return "★".repeat(Math.floor(s)) + (s % 1 ? "½" : ""); }
+
+function renderResults(sorted) {
+  $("top").value = state.top; $("bottom").value = state.bottom;
+  $("topOut").textContent = starGlyphs(state.top) + "  (" + state.top + ")";
+  $("bottomOut").textContent = starGlyphs(Math.min(state.bottom, state.top)) + "  (" + Math.min(state.bottom, state.top) + ")";
+  $("doneMeta").textContent = `${sorted.length} films · ${state.answers.length} picks`;
+  const ol = $("ledger"); ol.innerHTML = "";
+  sorted.forEach((t, i) => {
+    const s = scoreFor(i, sorted.length);
+    const li = document.createElement("li");
+    li.innerHTML = `<span class="rank">${i + 1}</span><span class="title"></span><span class="stars">${starGlyphs(s.stars)}</span><span class="ten">${s.ten}/10</span>`;
+    li.querySelector(".title").textContent = t;
+    ol.appendChild(li);
+  });
+  ol.dataset.text = sorted.map((t, i) => { const s = scoreFor(i, sorted.length); return `${i + 1}. ${t} — ${starGlyphs(s.stars)} (${s.stars}/5 · ${s.ten}/10)`; }).join("\n");
+}
+
+function pick(winner) {
+  if (!winner) return;
+  state.answers.push(winner); save();
+  for (const p of [$("pickA"), $("pickB")]) p.classList.toggle("picked", p.dataset.title === winner);
+  setTimeout(render, 140);
+}
+function undo() { if (state.answers.length) { state.answers.pop(); save(); render(); } }
+function parseList() { return [...new Set($("list").value.split("\n").map(s => s.trim()).filter(Boolean))]; }
+function updateCount() { const n = parseList().length; $("count").textContent = `${n} films · about ${estimate(n)} picks`; $("start").disabled = n < 2; }
+
+$("list").addEventListener("input", updateCount);
+$("resetList").onclick = () => { $("list").value = DEFAULT.join("\n"); updateCount(); };
+$("start").onclick = () => { state.films = parseList(); state.answers = []; save(); render(); };
+$("pickA").onclick = () => pick($("pickA").dataset.title);
+$("pickB").onclick = () => pick($("pickB").dataset.title);
+$("undo").onclick = undo;
+$("undoLast").onclick = undo;
+$("toss").onclick = () => pick(Math.random() < .5 ? $("pickA").dataset.title : $("pickB").dataset.title);
+$("edit").onclick = () => { $("list").value = state.films.join("\n"); state.films = null; state.answers = []; save(); render(); };
+$("again").onclick = () => { state.answers = []; save(); render(); };
+$("top").oninput = e => { state.top = +e.target.value; save(); render(); };
+$("bottom").oninput = e => { state.bottom = +e.target.value; save(); render(); };
+$("copy").onclick = () => {
+  const text = $("ledger").dataset.text;
+  const fallback = () => { const ta = $("copyFallback"); ta.hidden = false; ta.value = text; ta.select(); $("toast").textContent = "Select all and copy"; };
+  try { navigator.clipboard.writeText(text).then(() => { $("toast").textContent = "Copied"; setTimeout(() => $("toast").textContent = "", 1800); }, fallback); } catch (e) { fallback(); }
+};
+document.addEventListener("keydown", e => {
+  if ($("duel").hidden) return;
+  if (e.key === "ArrowLeft") pick($("pickA").dataset.title);
+  else if (e.key === "ArrowRight") pick($("pickB").dataset.title);
+  else if (e.key === "Backspace") { e.preventDefault(); undo(); }
+});
+
+window.claude?.hot?.snapshot?.(() => state);
+const start = data => { if (data && data.answers) state = Object.assign(state, data); else load(); render(); };
+window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? null);
+</script>
+
+</html>
